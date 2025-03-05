@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include <gz/sim/System.hh>
 #include <gz/transport/Node.hh>
@@ -29,6 +30,7 @@
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/Visual.hh>
+#include <gz/sim/components/VisualCmd.hh>
 
 #include <sdf/Joint.hh>
 #include <sdf/Geometry.hh>
@@ -75,6 +77,7 @@ class LedRingPlugin : public gz::sim::System,
         // Node for trasnport to send to ROS2 eventually
         gz::transport::Node node;
         gz::transport::Node::Publisher led_status_pub;
+        gz::transport::Node::Publisher visual_config_pub;
 
         // rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr dockStatusPub;
         // rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr dockControlSub;
@@ -97,6 +100,7 @@ class LedRingPlugin : public gz::sim::System,
         float n_leds = 12;
 
         std::vector<float> led_colours;
+        std::map<int, gz::sim::Entity> led_id_entity_map;
 
         bool _configured = false;
 

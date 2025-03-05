@@ -53,9 +53,6 @@ void LedRingPlugin::Configure(const gz::sim::Entity &_entity,
 
 	// World is initialised in the postupdate
 
-	// // Get Physics	
-	// this->physics = this->world->Physics();
-
 	// // // Get parameters specified in the sdf file.
 	if (_sdf->HasElement("robotNamespace")) {
 		this->robot_namespace = _sdf->Get<std::string>("robotNamespace");
@@ -75,61 +72,98 @@ void LedRingPlugin::Configure(const gz::sim::Entity &_entity,
 		this->led_colours.push_back(0.0);
 	}
 
-	// // Create Publisher and Subscriber for ROS2 to interact with this
-	// this->publisher_name = this->robot_namespace + "/leds/status";
-	// this->led_status_pub = node.Advertise<ignition::msgs::Float_V>(this->publisher_name);
-	// if (!this->led_status_pub)
-	// {
-	// 	ignerr << "Error advertising topic [" << this->publisher_name << "]" << std::endl;
-	// 	return;
-	// }
+	// Create Publisher and Subscriber for ROS2 to interact with this
+	this->publisher_name = this->robot_namespace + "/leds/status";
+	this->led_status_pub = node.Advertise<ignition::msgs::Float_V>(this->publisher_name);
+	if (!this->led_status_pub)
+	{
+		ignerr << "Error advertising topic [" << this->publisher_name << "]" << std::endl;
+		return;
+	}
 
-	// this->subscription_name = this->robot_namespace+"/leds/control";
-	// if(!this->node.Subscribe(this->subscription_name, &LedRingPlugin::OnLedMsg, this))
-	// {
-	// 	ignerr << "Error subscribing to topic [" << this->subscription_name << "]" << std::endl;
-	// 	return;
-	// }
+	this->subscription_name = this->robot_namespace+"/leds/control";
+	if(!this->node.Subscribe(this->subscription_name, &LedRingPlugin::OnLedMsg, this))
+	{
+		ignerr << "Error subscribing to topic [" << this->subscription_name << "]" << std::endl;
+		return;
+	}
 
-	// ignerr << "Publisher initialised on " << this->subscription_name << std::endl;
-	// ignerr << "Subscriber initialised on " << this->publisher_name<< std::endl;
+	ignerr << "Publisher initialised on " << this->subscription_name << std::endl;
+	ignerr << "Subscriber initialised on " << this->publisher_name<< std::endl;
 }
 
 void LedRingPlugin::OnLedMsg(const ignition::msgs::Float_V &leds) {
 	auto data = leds.data();
 	ignerr << "Received an LED Control msg" << std::endl;
-	int led_index = 0;
-	for(float d: data) {
-		if(led_index > this->led_colours.size()) {
-			ignerr << "Received more led colours than expected" << std::endl;
-			break;
-		}
-		ignerr << led_index << " " << std::to_string(d) + " " << std::endl;
-		this->led_colours[led_index] = d;
-		led_index++;
+	if(!this->_configured) {
+		ignerr << "LED Ring Not Configured Yet" << std::endl;
+		return;
+	}
+
+	int data_size = data.size();
+	int num_leds_in_data = (int) data_size / 3;
+	if(num_leds_in_data > this->led_colours.size()) {
+		ignerr << "Received more led colours than expected" << std::endl;
+	}
+
+	// for(float d: data) {
+	for(int i = 0; i < num_leds_in_data; i++) {
+		float r = data[i*3];
+		float g = data[i*3 + 1];
+		float b = data[i*3 + 2];
+	
+		ignerr << i << " " << std::to_string(r) + " " << std::to_string(g) + " " << std::to_string(b) << std::endl;
+
+		// Check if different, then send request msg chaneg
+		// if(this->led_colours[i*3] - r > 1e-5 ||
+		// 	this->led_colours[i*3 + 1] - g > 1e-5 ||
+		// 	this->led_colours[i*3 + 2] - b > 1e-5
+		// ) {			
+		gz::msgs::Visual msg;
+		gz::sim::Entity visual_entity = this->led_id_entity_map[i];
+		msg.set_id(visual_entity);
+		// msg.set_name("drone0::leds_link::led0");
+		// Modify the material color (RGBA format)
+		gz::msgs::Material *mat = msg.mutable_material();
+		gz::msgs::Set(mat->mutable_diffuse(), gz::math::Color(r, g, b, 1.0));  // Red color
+		gz::msgs::Set(mat->mutable_emissive(), gz::math::Color(r, g, b, 1.0));  // Red color
+		gz::msgs::Set(mat->mutable_specular(), gz::math::Color(0.8, 0.8, 0.8, 1.0));  // Red color
+		gz::msgs::Set(mat->mutable_ambient(), gz::math::Color(0.8, 0.8, 0.8, 1.0));  // Red color
+		msg.set_transparency(0.5);
+		msg.set_type(gz::msgs::Visual::VISUAL);
+		this->visual_config_pub.Publish(msg);
+		ignerr << "Published Diffusive and Emmisive to " << visual_entity << std::endl;
+		// }
+
+		this->led_colours[i*3] = r;
+		this->led_colours[i*3 + 1] = g;
+		this->led_colours[i*3 + 2] = b;
 	}
 	this->_received = true;
 }
 
 void LedRingPlugin::PreUpdate(const gz::sim::UpdateInfo &_info, gz::sim::EntityComponentManager &_ecm)
 {
-    // Your logic to check distance or conditions for attaching/detaching joints
-    // Example: if (distance < threshold) { attachJoint(); }
-	// ignmsg << "SampleSystem::PostUpdate" << std::endl;
-
 	if (!this->_configured) {
 
 		// Set World here as ECM is not fully initialised
 		this->world = gz::sim::World(gz::sim::worldEntity(_ecm));
 		this->base_link = gz::sim::Link(this->model.CanonicalLink(_ecm));
 
+		// Create Subscriber to the visual_config with world
+		std::string world_name = *this->world.Name(_ecm);
+		std::string visual_config_topic_name = "/world/"+world_name+"/visual_config";
+		this->visual_config_pub = node.Advertise<gz::msgs::Visual>(visual_config_topic_name);
+		// gz::msgs::Visual msg;
+		// this->visual_config_pub.Publish(msg);
+		ignerr << "Created Materials Publisher to " << visual_config_topic_name << std::endl;
 
 		gz::sim::SdfEntityCreator entityCreator(_ecm, *(this->em));
 
 		// Construct the LED RING
 		// Create a new link
 		sdf::Link sdfLink;
-		sdfLink.SetName("dynamic_cylinder_link");
+		sdfLink.SetName("leds_link");
 		sdfLink.SetPoseRelativeTo("base_frame");
 		sdfLink.SetRawPose(gz::math::Pose3d(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
@@ -141,6 +175,15 @@ void LedRingPlugin::PreUpdate(const gz::sim::UpdateInfo &_info, gz::sim::EntityC
 				gz::math::Pose3d(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 			)
 		);
+
+		// Create the entities using the EntityCreator
+		auto linkEntity = entityCreator.CreateEntities(&sdfLink);
+		if(linkEntity == gz::sim::kNullEntity) {
+			ignerr << "LinkEntity failed to be created" << std::endl;
+		} 
+		entityCreator.SetParent(linkEntity, this->model.Entity());
+		_ecm.CreateComponent(linkEntity, gz::sim::components::VisualCmd());
+		this->led_link = gz::sim::Link(linkEntity);
 
 		double angle_delta = 2*PI/this->n_leds;
 		for(int i = 0; i < this->n_leds; i++) {
@@ -182,6 +225,19 @@ void LedRingPlugin::PreUpdate(const gz::sim::UpdateInfo &_info, gz::sim::EntityC
 			// Add the visual to the link
 			sdfLink.AddVisual(sdfVisual);
 
+			// Assuming `entityCreator` is already being used to create the entity
+			auto visualEntity = entityCreator.CreateEntities(&sdfVisual);
+			if (visualEntity == gz::sim::kNullEntity) {
+				ignerr << "Failed to create visual entity" << std::endl;
+				continue;
+			} 
+			// Ensure it's marked as a Visual in Gazebo
+			_ecm.CreateComponent(visualEntity, gz::sim::components::Visual());
+			// _ecm.CreateComponent(visualEntity, gz::sim::components::VisualCmd());
+			_ecm.CreateComponent(visualEntity, gz::sim::components::Material());
+			this->led_id_entity_map[i] = visualEntity;
+			entityCreator.SetParent(visualEntity, linkEntity);
+
 
 			// Create a light
 			// sdf::Light sdfLight;
@@ -195,128 +251,130 @@ void LedRingPlugin::PreUpdate(const gz::sim::UpdateInfo &_info, gz::sim::EntityC
 			// sdfLight.SetRawPose(gz::math::Pose3d(x, y, this->ring_z_offset, 0.0, 0.0, 0.0));
 
 			// Add the light to the link
-			sdfLink.AddLight(sdfLight);
+			// sdfLink.AddLight(sdfLight);
 
 		}
-
-
-		// Create the entities using the EntityCreator
-		auto linkEntity = entityCreator.CreateEntities(&sdfLink);
-		if(linkEntity == gz::sim::kNullEntity) {
-			ignerr << "LinkEntity failed to be created" << std::endl;
-		} 
-		entityCreator.SetParent(linkEntity, this->model.Entity());
-		this->led_link = gz::sim::Link(linkEntity);
 
 		// OPTIONAL: Add a fixed joint to rigidly attach the link to the model
 		sdf::Joint sdfJoint;
-		sdfJoint.SetName("dynamic_cylinder_joint");
+		sdfJoint.SetName("led_joint");
 		sdfJoint.SetType(sdf::JointType::FIXED);
 		sdfJoint.SetParentLinkName("base_link");
-		sdfJoint.SetChildLinkName("dynamic_cylinder_link");
+		sdfJoint.SetChildLinkName("leds_link");
 
 		auto jointEntity = entityCreator.CreateEntities(&sdfJoint, true); // Needs true as it avoids dynamic resolution which will fail to find the base_link
 		if(jointEntity == gz::sim::kNullEntity) {
-			ignerr << "jointEntity failed to be created" << std::endl;
+			ignerr << "led_joint jointEntity failed to be created" << std::endl;
 		}
 		entityCreator.SetParent(jointEntity, this->model.Entity());
-
 
 		this->_configured = true;
 		ignerr << "LedRingPlugin Configured"<< std::endl;
 		ignmsg << "LedRingPlugin Configured"<< std::endl;
 	}
+} // end of PreUpdate()
 
 	// Iterate over all visual entities
-	_ecm.Each<gz::sim::components::Visual, gz::sim::components::Name>(
-	[&](const gz::sim::Entity &entity,
-		const gz::sim::components::Visual *,
-		const gz::sim::components::Name *name) -> bool
-	{
-		// Check if the visual is one of the LEDs we created
-		if (name->Data().find("led") != std::string::npos)
-		{
-			std::string led_name = name->Data();
+// 	_ecm.Each<gz::sim::components::Visual, gz::sim::components::Name>(
+// 	[&](const gz::sim::Entity &entity,
+// 		const gz::sim::components::Visual *,
+// 		const gz::sim::components::Name *name) -> bool
+// 	{
+// 		// Check if the visual is one of the LEDs we created
+// 		if (name->Data().find("led") != std::string::npos)
+// 		{
+// 			std::string led_name = name->Data();
 
-			// Get the Material component
-			auto materialComp = _ecm.Component<gz::sim::components::Material>(entity);
+// 			// Get the Material component
+// 			auto materialComp = _ecm.Component<gz::sim::components::Material>(entity);
 
-			if (materialComp)
-			{
-				// Get the material message
-				gz::math::Color diffuse = materialComp->Data().Diffuse();
-				ignerr << "Diffuse State: " << diffuse.R() << " " << diffuse.G() << " " << diffuse.B() << " " << std::endl;
-			}
-		}			
-		return true;  // Continue iteration
-	});
+// 			if (materialComp)
+// 			{
+// 				// Get the material message
+// 				gz::math::Color diffuse = materialComp->Data().Diffuse();
+// 				// ignerr << led_name  << " Diffuse State: " << diffuse.R() << " " << diffuse.G() << " " << diffuse.B() << " " << std::endl;
+// 			}
+// 		}			
+// 		return true;  // Continue iteration
+// 	});
 
-	if (this->_received){
-		this->_received = false;
-		// Change Colour Based On What Has Been Received
-		if(this->led_link.Entity() == gz::sim::kNullEntity) {
-			ignerr << "LED LINK ENTITY NOT INITIALISED" << std::endl;
-		} else {
+// 	if (this->_received){
+// 		this->_received = false;
+// 		// Change Colour Based On What Has Been Received
+// 		if(this->led_link.Entity() == gz::sim::kNullEntity) {
+// 			ignerr << "LED LINK ENTITY NOT INITIALISED" << std::endl;
+// 		} else {
 
-			// auto led_visuals = this->led_link.Visuals(_ecm);
-			// for(gz::sim::Entity vis: led_visuals) {
+// 			// auto led_visuals = this->led_link.Visuals(_ecm);
+// 			// for(gz::sim::Entity vis: led_visuals) {
 
-			// }
+// 			// }
 
-			// std::vector<float> pub_data;
-			ignition::msgs::Float_V pub_msg;
+// 			// std::vector<float> pub_data;
+// 			ignition::msgs::Float_V pub_msg;
 
-			// Iterate over all visual entities
-			_ecm.Each<gz::sim::components::Visual, gz::sim::components::Name>(
-			[&](const gz::sim::Entity &entity,
-				const gz::sim::components::Visual *,
-				const gz::sim::components::Name *name) -> bool
-			{
-				// Check if the visual is one of the LEDs we created
-				if (name->Data().find("led") != std::string::npos)
-				{
-					std::string led_name = name->Data();
-					// ignerr << "Name: " << led_name << std::endl;
-					// ignerr << "SSTR: " << led_name.substr(3) << std::endl;
-					int number = std::stoi(name->Data().substr(3));
+// 			// Iterate over all visual entities
+// 			_ecm.Each<gz::sim::components::Visual, gz::sim::components::Name>(
+// 			[&](const gz::sim::Entity &entity,
+// 				const gz::sim::components::Visual *,
+// 				const gz::sim::components::Name *name) -> bool
+// 			{
+// 				// Check if the visual is one of the LEDs we created
+// 				if (name->Data().find("led") != std::string::npos)
+// 				{
+// 					std::string led_name = name->Data();
+// 					// ignerr << "Name: " << led_name << std::endl;
+// 					// ignerr << "SSTR: " << led_name.substr(3) << std::endl;
+// 					int number = std::stoi(name->Data().substr(3));
 
-					// Get the Material component
-					auto materialComp = _ecm.Component<gz::sim::components::Material>(entity);
+// 					// Get the Material component
+// 					auto materialComp = _ecm.Component<gz::sim::components::Material>(entity);
 
-					if (materialComp)
-					{
-						// Get the material message
-						auto materialSdf = materialComp->Data();
+// 					if (materialComp)
+// 					{
+// 						// Get the material message
+// 						auto materialSdf = materialComp->Data();
 
-						float r = this->led_colours[number * 3 + 0];
-						float b = this->led_colours[number * 3 + 1];
-						float g = this->led_colours[number * 3 + 2];
+// 						float r = this->led_colours[number * 3 + 0];
+// 						float b = this->led_colours[number * 3 + 1];
+// 						float g = this->led_colours[number * 3 + 2];
 
-						ignerr << "Setting r g b to " << r << " " << g << " " << b << std::endl;
+// 						// gz::msgs::Visual msg;
+// 						// gz::sim::Entity visual_entity = this->led_id_entity_map[number];
+// 						// msg.set_id(visual_entity);
+// 						// // Modify the material color (RGBA format)
+// 						// gz::msgs::Material *mat = msg.mutable_material();
+// 						// gz::msgs::Set(mat->mutable_diffuse(), gz::math::Color(r, g, b, 1.0));  // Red color
+// 						// gz::msgs::Set(mat->mutable_emissive(), gz::math::Color(r, g, b, 1.0));  // Red color
 
-						// Update the Diffuse color
-						materialSdf.SetDiffuse(gz::math::Color(r, g, b, 1.0));
-						materialSdf.SetEmissive(gz::math::Color(r, g, b, 1.0));  
+// 						// this->visual_config_pub.Publish(msg);
+// 						// ignerr << "Repeated Published Diffusive and Emmisive to " << visual_entity << std::endl;
 
-						// Update the Material component
-						_ecm.SetComponentData<gz::sim::components::Material>(entity, materialSdf);
-					}
+// 						// ignerr << "Setting r g b to " << r << " " << g << " " << b << std::endl;
 
-					// Lookup again to check if state was set
-					materialComp = _ecm.Component<gz::sim::components::Material>(entity);
-					gz::math::Color diffuse = materialComp->Data().Diffuse();
-					pub_msg.add_data(diffuse.R());
-					pub_msg.add_data(diffuse.G());
-					pub_msg.add_data(diffuse.B());
-				}
+// 						// Update the Diffuse color
+// 						// materialSdf.SetDiffuse(gz::math::Color(r, g, b, 1.0));
+// 						// materialSdf.SetEmissive(gz::math::Color(r, g, b, 1.0));  
+
+// 						// Update the Material component
+// 						// _ecm.SetComponentData<gz::sim::components::Material>(entity, materialSdf);
+// 					}
+
+// 					// Lookup again to check if state was set
+// 					materialComp = _ecm.Component<gz::sim::components::Material>(entity);
+// 					gz::math::Color diffuse = materialComp->Data().Diffuse();
+// 					pub_msg.add_data(diffuse.R());
+// 					pub_msg.add_data(diffuse.G());
+// 					pub_msg.add_data(diffuse.B());
+// 				}
 					
-				return true;  // Continue iteration
-			});
+// 				return true;  // Continue iteration
+// 			});
 
-			// led_status_pub.Publish(pub_msg);
-		}
-	}
+// 			// led_status_pub.Publish(pub_msg);
+// 		}
+// 	}
 
-}
+// }
 
 } // namespace gazebo
