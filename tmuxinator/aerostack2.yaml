@@ -16,24 +16,17 @@ root: ./
 pre_window: source <%= script_folder %>/setup.bash; tmux set mouse on
 startup_window: mission_monitoring
 windows:
-  - simulaiton:
-        layout: tiled
-        panes:
-            - ros2 launch as2_gazebo_assets launch_simulation.py
-                use_sim_time:=true
-                simulation_config_file:=<%= simulation_config_file %>
-                verbose:=true
   # Platform
   - platform:
       layout: tiled
       panes:
       # Platform
         <%- if simulation %>
-            # <%- if base_launch %>
-        # - ros2 launch as2_gazebo_assets launch_simulation.py
-        #     use_sim_time:=true
-        #     simulation_config_file:=<%= simulation_config_file %>
-        #     <%- end %>
+            <%- if base_launch %>
+        - ros2 launch as2_gazebo_assets launch_simulation.py
+            use_sim_time:=true
+            simulation_config_file:=<%= simulation_config_file %>
+            <%- end %>
         - ros2 launch as2_platform_gazebo platform_gazebo_launch.py
             namespace:=<%= drone_namespace %>
             platform_config_file:=<%= config_file %>
