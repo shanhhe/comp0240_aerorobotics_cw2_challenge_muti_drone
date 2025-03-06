@@ -73,13 +73,13 @@ void LedRingPlugin::Configure(const gz::sim::Entity &_entity,
 	}
 
 	// Create Publisher and Subscriber for ROS2 to interact with this
-	this->publisher_name = this->robot_namespace + "/leds/status";
-	this->led_status_pub = node.Advertise<ignition::msgs::Float_V>(this->publisher_name);
-	if (!this->led_status_pub)
-	{
-		ignerr << "Error advertising topic [" << this->publisher_name << "]" << std::endl;
-		return;
-	}
+	// this->publisher_name = this->robot_namespace + "/leds/status";
+	// this->led_status_pub = node.Advertise<ignition::msgs::Float_V>(this->publisher_name);
+	// if (!this->led_status_pub)
+	// {
+	// 	ignerr << "Error advertising topic [" << this->publisher_name << "]" << std::endl;
+	// 	return;
+	// }
 
 	this->subscription_name = this->robot_namespace+"/leds/control";
 	if(!this->node.Subscribe(this->subscription_name, &LedRingPlugin::OnLedMsg, this))
@@ -88,7 +88,7 @@ void LedRingPlugin::Configure(const gz::sim::Entity &_entity,
 		return;
 	}
 
-	ignerr << "Publisher initialised on " << this->subscription_name << std::endl;
+	// ignerr << "Publisher initialised on " << this->subscription_name << std::endl;
 	ignerr << "Subscriber initialised on " << this->publisher_name<< std::endl;
 }
 
@@ -122,17 +122,24 @@ void LedRingPlugin::OnLedMsg(const ignition::msgs::Float_V &leds) {
 		gz::msgs::Visual msg;
 		gz::sim::Entity visual_entity = this->led_id_entity_map[i];
 		msg.set_id(visual_entity);
-		// msg.set_name("drone0::leds_link::led0");
+
 		// Modify the material color (RGBA format)
 		gz::msgs::Material *mat = msg.mutable_material();
 		gz::msgs::Set(mat->mutable_diffuse(), gz::math::Color(r, g, b, 1.0));  // Red color
 		gz::msgs::Set(mat->mutable_emissive(), gz::math::Color(r, g, b, 1.0));  // Red color
-		gz::msgs::Set(mat->mutable_specular(), gz::math::Color(0.8, 0.8, 0.8, 1.0));  // Red color
-		gz::msgs::Set(mat->mutable_ambient(), gz::math::Color(0.8, 0.8, 0.8, 1.0));  // Red color
-		msg.set_transparency(0.5);
-		msg.set_type(gz::msgs::Visual::VISUAL);
+
+		std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+			[](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+		{
+			if (!_result)
+			ignerr << "Error setting material color configuration"
+					<< " on visual" << std::endl;
+		};
+
+		this->node.Request(this->visual_config_service_name, msg, cb);
+
+		ignerr << "Sent Service Call Diffusive and Emmisive to " << visual_entity << std::endl;
 		this->visual_config_pub.Publish(msg);
-		ignerr << "Published Diffusive and Emmisive to " << visual_entity << std::endl;
 		// }
 
 		this->led_colours[i*3] = r;
@@ -152,11 +159,8 @@ void LedRingPlugin::PreUpdate(const gz::sim::UpdateInfo &_info, gz::sim::EntityC
 
 		// Create Subscriber to the visual_config with world
 		std::string world_name = *this->world.Name(_ecm);
-		std::string visual_config_topic_name = "/world/"+world_name+"/visual_config";
-		this->visual_config_pub = node.Advertise<gz::msgs::Visual>(visual_config_topic_name);
-		// gz::msgs::Visual msg;
-		// this->visual_config_pub.Publish(msg);
-		ignerr << "Created Materials Publisher to " << visual_config_topic_name << std::endl;
+		this->visual_config_service_name = "/world/"+world_name+"/visual_config";
+		ignerr << "Materials Service Call Sent To " << this->visual_config_service_name << std::endl;
 
 		gz::sim::SdfEntityCreator entityCreator(_ecm, *(this->em));
 
@@ -239,18 +243,18 @@ void LedRingPlugin::PreUpdate(const gz::sim::UpdateInfo &_info, gz::sim::EntityC
 			entityCreator.SetParent(visualEntity, linkEntity);
 
 
-			// Create a light
+			// // Create a light
 			// sdf::Light sdfLight;
-			// sdfLight.SetName("led" + std::to_string());
+			// sdfLight.SetName("led" + std::to_string(i));
 			// sdfLight.SetType(sdf::LightType::POINT);
-			// sdfLight.SetDiffuse(gz::math::Color(this->colorR, this->colorG, this->colorB, 1.0));
+			// sdfLight.SetDiffuse(gz::math::Color(r, g, b, 1.0));
 			// sdfLight.SetSpecular(gz::math::Color(0.8, 0.8, 0.8, 1.0));  // Near-white for strong highlights
 			// sdfLight.SetIntensity(1.0);
 			// sdfLight.SetAttenuationRange(1.0);
 			// sdfLight.SetDirection(gz::math::Vector3d(0.0, 0.0, -1.0));
 			// sdfLight.SetRawPose(gz::math::Pose3d(x, y, this->ring_z_offset, 0.0, 0.0, 0.0));
 
-			// Add the light to the link
+			// // Add the light to the link
 			// sdfLink.AddLight(sdfLight);
 
 		}
@@ -273,108 +277,5 @@ void LedRingPlugin::PreUpdate(const gz::sim::UpdateInfo &_info, gz::sim::EntityC
 		ignmsg << "LedRingPlugin Configured"<< std::endl;
 	}
 } // end of PreUpdate()
-
-	// Iterate over all visual entities
-// 	_ecm.Each<gz::sim::components::Visual, gz::sim::components::Name>(
-// 	[&](const gz::sim::Entity &entity,
-// 		const gz::sim::components::Visual *,
-// 		const gz::sim::components::Name *name) -> bool
-// 	{
-// 		// Check if the visual is one of the LEDs we created
-// 		if (name->Data().find("led") != std::string::npos)
-// 		{
-// 			std::string led_name = name->Data();
-
-// 			// Get the Material component
-// 			auto materialComp = _ecm.Component<gz::sim::components::Material>(entity);
-
-// 			if (materialComp)
-// 			{
-// 				// Get the material message
-// 				gz::math::Color diffuse = materialComp->Data().Diffuse();
-// 				// ignerr << led_name  << " Diffuse State: " << diffuse.R() << " " << diffuse.G() << " " << diffuse.B() << " " << std::endl;
-// 			}
-// 		}			
-// 		return true;  // Continue iteration
-// 	});
-
-// 	if (this->_received){
-// 		this->_received = false;
-// 		// Change Colour Based On What Has Been Received
-// 		if(this->led_link.Entity() == gz::sim::kNullEntity) {
-// 			ignerr << "LED LINK ENTITY NOT INITIALISED" << std::endl;
-// 		} else {
-
-// 			// auto led_visuals = this->led_link.Visuals(_ecm);
-// 			// for(gz::sim::Entity vis: led_visuals) {
-
-// 			// }
-
-// 			// std::vector<float> pub_data;
-// 			ignition::msgs::Float_V pub_msg;
-
-// 			// Iterate over all visual entities
-// 			_ecm.Each<gz::sim::components::Visual, gz::sim::components::Name>(
-// 			[&](const gz::sim::Entity &entity,
-// 				const gz::sim::components::Visual *,
-// 				const gz::sim::components::Name *name) -> bool
-// 			{
-// 				// Check if the visual is one of the LEDs we created
-// 				if (name->Data().find("led") != std::string::npos)
-// 				{
-// 					std::string led_name = name->Data();
-// 					// ignerr << "Name: " << led_name << std::endl;
-// 					// ignerr << "SSTR: " << led_name.substr(3) << std::endl;
-// 					int number = std::stoi(name->Data().substr(3));
-
-// 					// Get the Material component
-// 					auto materialComp = _ecm.Component<gz::sim::components::Material>(entity);
-
-// 					if (materialComp)
-// 					{
-// 						// Get the material message
-// 						auto materialSdf = materialComp->Data();
-
-// 						float r = this->led_colours[number * 3 + 0];
-// 						float b = this->led_colours[number * 3 + 1];
-// 						float g = this->led_colours[number * 3 + 2];
-
-// 						// gz::msgs::Visual msg;
-// 						// gz::sim::Entity visual_entity = this->led_id_entity_map[number];
-// 						// msg.set_id(visual_entity);
-// 						// // Modify the material color (RGBA format)
-// 						// gz::msgs::Material *mat = msg.mutable_material();
-// 						// gz::msgs::Set(mat->mutable_diffuse(), gz::math::Color(r, g, b, 1.0));  // Red color
-// 						// gz::msgs::Set(mat->mutable_emissive(), gz::math::Color(r, g, b, 1.0));  // Red color
-
-// 						// this->visual_config_pub.Publish(msg);
-// 						// ignerr << "Repeated Published Diffusive and Emmisive to " << visual_entity << std::endl;
-
-// 						// ignerr << "Setting r g b to " << r << " " << g << " " << b << std::endl;
-
-// 						// Update the Diffuse color
-// 						// materialSdf.SetDiffuse(gz::math::Color(r, g, b, 1.0));
-// 						// materialSdf.SetEmissive(gz::math::Color(r, g, b, 1.0));  
-
-// 						// Update the Material component
-// 						// _ecm.SetComponentData<gz::sim::components::Material>(entity, materialSdf);
-// 					}
-
-// 					// Lookup again to check if state was set
-// 					materialComp = _ecm.Component<gz::sim::components::Material>(entity);
-// 					gz::math::Color diffuse = materialComp->Data().Diffuse();
-// 					pub_msg.add_data(diffuse.R());
-// 					pub_msg.add_data(diffuse.G());
-// 					pub_msg.add_data(diffuse.B());
-// 				}
-					
-// 				return true;  // Continue iteration
-// 			});
-
-// 			// led_status_pub.Publish(pub_msg);
-// 		}
-// 	}
-
-// }
 
 } // namespace gazebo

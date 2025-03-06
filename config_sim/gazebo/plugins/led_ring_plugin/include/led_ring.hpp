@@ -95,6 +95,7 @@ class LedRingPlugin : public gz::sim::System,
         std::string publisher_name = "";
         std::string subscription_name = "";
         std::string robot_namespace = "";
+        std::string visual_config_service_name = "/world/empty/visual_config";
         float ring_z_offset = -0.00; //m 
         float ring_radius = 0.1; //m
         float n_leds = 12;
