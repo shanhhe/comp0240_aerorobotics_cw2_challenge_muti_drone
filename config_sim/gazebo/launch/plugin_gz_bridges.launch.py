@@ -42,8 +42,9 @@ def drone_bridges(context):
     namespace = LaunchConfiguration('namespace').perform(context)
 
     bridges = [
-        (f"/model/{namespace}/leds/status", "leds/status", "ignition.msgs.Float_V", "ros_gz_interfaces/msg/Float32Array"),
-        (f"/model/{namespace}/leds/control", "leds/control", "ignition.msgs.Float_V", "ros_gz_interfaces/msg/Float32Array")
+        # (f"/model/{namespace}/leds/status", "leds/status", "ignition.msgs.Float_V", "ros_gz_interfaces/msg/Float32Array"),
+        # (f"/model/{namespace}/leds/control_individual", "leds/control_indvidual", "ignition.msgs.Float_V", "ros_gz_interfaces/msg/Float32Array"),
+        (f"/model/{namespace}/leds/control", "leds/control", "ignition.msgs.Color", "std_msgs/msg/ColorRGBA")
     ]
 
     nodes = []

@@ -72,7 +72,8 @@ class LedRingPlugin : public gz::sim::System,
 
     private:
 
-        void OnLedMsg(const ignition::msgs::Float_V &leds);
+        void OnLedMsg(const ignition::msgs::Color &colour);
+        void OnLedIndividualMsg(const ignition::msgs::Float_V &leds);
 
         // Node for trasnport to send to ROS2 eventually
         gz::transport::Node node;
@@ -93,7 +94,8 @@ class LedRingPlugin : public gz::sim::System,
         gz::sim::Link led_link;
 
         std::string publisher_name = "";
-        std::string subscription_name = "";
+        std::string subscription_control_individual_name = "";
+        std::string subscription_control_name = "";
         std::string robot_namespace = "";
         std::string visual_config_service_name = "/world/empty/visual_config";
         float ring_z_offset = -0.00; //m 

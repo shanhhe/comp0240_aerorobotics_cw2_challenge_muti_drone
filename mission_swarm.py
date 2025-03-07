@@ -47,7 +47,8 @@ from as2_msgs.msg import BehaviorStatus
 from as2_python_api.drone_interface import DroneInterface
 from as2_python_api.behavior_actions.behavior_handler import BehaviorHandler
 
-from ros_gz_interfaces.msg import Float32Array
+from std_msgs.msg import ColorRGBA
+# from ros_gz_interfaces.msg import Float32Array
 
 class Choreographer:
     """Simple Geometric Choreographer"""
@@ -115,40 +116,23 @@ class Dancer(DroneInterface):
 
         self.current_behavior: Optional[BehaviorHandler] = None
 
-        self.led_pub = self.create_publisher(Float32Array, f"/{namespace}/leds/control", 10)
+        self.led_pub = self.create_publisher(ColorRGBA, f"/{namespace}/leds/control", 10)
         self.num_leds = 12
-        self.led_colours = [(0, 0, 0) for _ in range(self.num_leds)]
 
-    def change_leds(self, led_id, colour):
+    def change_led_colour(self, colour):
         """Change the colours
 
         Args:
-            led_id (int | List[int]): The LED ID to change
-            colour (tuple | List[tuple]): The LED RGB Colours to change to 0-255
+            colour (tuple): The LED RGB Colours (0-255)
         """
-        if not isinstance(led_id, list):
-            led_id = [led_id]
-            colour = [colour]
-
-        for lid, c in zip(led_id, colour):
-            self.led_colours[lid] = c
-        
-        msg = Float32Array()
-        for c in self.led_colours:
-            msg.data.extend(c)
+        msg = ColorRGBA()
+        msg.r = colour[0]/255.0
+        msg.g = colour[1]/255.0
+        msg.b = colour[2]/255.0
         self.led_pub.publish(msg)
 
-    def change_all_leds_same_colour(self, colour):
-        self.change_leds(
-            [i for i in range(self.num_leds)],
-            [colour for _ in range(self.num_leds)]
-        )
-
     def change_leds_random_colour(self):
-        self.change_leds(
-            [i for i in range(self.num_leds)],
-            [[random.randint(0, 255) for _ in range(3)] for _ in range(self.num_leds)]
-        )
+        self.change_led_colour([random.randint(0, 255) for _ in range(3)])
 
     def reset(self) -> None:
         """Set current waypoint in path to start point"""
@@ -221,7 +205,7 @@ class SwarmConductor:
         """Takeoff swarm and wait for all drones"""
         for drone in self.drones.values():
             drone.do_behavior("takeoff", 1, 0.7, False)
-            drone.change_all_leds_same_colour((0, 255, 0))
+            drone.change_led_colour((0, 255, 0))
         self.wait()
 
     def land(self):

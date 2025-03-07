@@ -12,11 +12,12 @@ It also flies around using position and velocity control
 import time
 import rclpy
 import argparse
+import random
 from as2_python_api.drone_interface import DroneInterface
 
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image, CameraInfo
-from ros_gz_interfaces.msg import Float32Array
+from std_msgs.msg import ColorRGBA
 
 from cv_bridge import CvBridge
 import cv2 
@@ -53,34 +54,22 @@ class DroneMotionRef(DroneInterface):
         # ROS2 create a subscription to the raw image of the sensors.
         # This details the ros message type (Image), the name of the topic
         # And the function that should be called when a message is received on this topic
-        self.led_pub = self.create_publisher(Float32Array, f"/{name}/leds/control", 10)
-        self.num_leds = 12
-        self.led_colours = [(0, 0, 0) for _ in range(self.num_leds)]
+        self.led_pub = self.create_publisher(ColorRGBA, f"/{name}/leds/control", 10)
 
-    def change_leds(self, led_id, colour):
+    def change_led_colour(self, colour):
         """Change the colours
 
         Args:
-            led_id (int | List[int]): The LED ID to change
-            colour (tuple | List[tuple]): The LED RGB Colours to change to 0-255
+            colour (tuple): The LED RGB Colours (0-255)
         """
-        if not isinstance(led_id, list):
-            led_id = [led_id]
-            colour = [colour]
-
-        for lid, c in zip(led_id, colour):
-            self.led_colours[lid] = c
-        
-        msg = Float32Array()
-        for c in self.led_colours:
-            msg.data.extend(c)
+        msg = ColorRGBA()
+        msg.r = colour[0]/255.0
+        msg.g = colour[1]/255.0
+        msg.b = colour[2]/255.0
         self.led_pub.publish(msg)
 
-    def change_all_leds_same_colour(self, colour):
-        self.change_leds(
-            [i for i in range(self.num_leds)],
-            [colour for _ in range(self.num_leds)]
-        )
+    def change_leds_random_colour(self):
+        self.change_led_colour([random.randint(0, 255) for _ in range(3)])
 
     def run_test(self):
         """ Run the mission """
@@ -109,25 +98,25 @@ class DroneMotionRef(DroneInterface):
         # Position Control fly around a bit
         speed = 1.5
         self.go_to.go_to_point([1, 0, 1.0], speed=speed)
-        self.change_all_leds_same_colour((255, 0, 0))
+        self.change_led_colour((255, 0, 0))
         self.get_logger().info("Point 1")
         self.go_to.go_to_point([2, 0, 2.0], speed=speed)
-        self.change_all_leds_same_colour((255, 0, 255))
+        self.change_led_colour((255, 0, 255))
         self.get_logger().info("Point 2")
         self.go_to.go_to_point([3, 0, 3.0], speed=speed)
-        self.change_all_leds_same_colour((255, 255, 0))
+        self.change_led_colour((255, 255, 0))
         self.get_logger().info("Point 3")
         self.go_to.go_to(3.0, -1.0, 2.5, speed=speed)
-        self.change_all_leds_same_colour((125, 0, 125))
+        self.change_led_colour((125, 0, 125))
         self.get_logger().info("Point 4")
         self.go_to.go_to_point_with_yaw([4, 1, 3.0], angle=45.0, speed=speed)
-        self.change_all_leds_same_colour(([78, 190, 255]))
+        self.change_led_colour(([78, 190, 255]))
         self.get_logger().info("Point 5")
         self.go_to.go_to_point_with_yaw([3, -2, 2.0], angle=-45.0, speed=speed)
-        self.change_all_leds_same_colour((59, 255, 180))
+        self.change_led_colour((59, 255, 180))
         self.get_logger().info("Point 6")
         self.go_to.go_to_point_with_yaw([0, 0, 1.0], angle=0.0, speed=speed)
-        self.change_all_leds_same_colour((129, 120, 180))
+        self.change_led_colour((129, 120, 180))
         self.get_logger().info("Point 7")
 
         self.land()

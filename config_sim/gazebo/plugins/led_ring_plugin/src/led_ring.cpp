@@ -81,18 +81,36 @@ void LedRingPlugin::Configure(const gz::sim::Entity &_entity,
 	// 	return;
 	// }
 
-	this->subscription_name = this->robot_namespace+"/leds/control";
-	if(!this->node.Subscribe(this->subscription_name, &LedRingPlugin::OnLedMsg, this))
+	this->subscription_control_individual_name = this->robot_namespace+"/leds/control_individual";
+	if(!this->node.Subscribe(this->subscription_control_individual_name, &LedRingPlugin::OnLedIndividualMsg, this))
 	{
-		ignerr << "Error subscribing to topic [" << this->subscription_name << "]" << std::endl;
+		ignerr << "Error subscribing to topic [" << this->subscription_control_individual_name << "]" << std::endl;
+		return;
+	}
+
+	this->subscription_control_name = this->robot_namespace+"/leds/control";
+	if(!this->node.Subscribe(this->subscription_control_name, &LedRingPlugin::OnLedMsg, this))
+	{
+		ignerr << "Error subscribing to topic [" << this->subscription_control_name << "]" << std::endl;
 		return;
 	}
 
 	// ignerr << "Publisher initialised on " << this->subscription_name << std::endl;
-	ignerr << "Subscriber initialised on " << this->publisher_name<< std::endl;
+	ignerr << "Subscriber initialised on " << this->subscription_control_individual_name<< std::endl;
+	ignerr << "Subscriber initialised on " << this->subscription_control_name<< std::endl;
 }
 
-void LedRingPlugin::OnLedMsg(const ignition::msgs::Float_V &leds) {
+void LedRingPlugin::OnLedMsg(const ignition::msgs::Color &colour) {
+	auto msg = ignition::msgs::Float_V();
+	for(int i = 0; i < this->n_leds ; i++){
+		msg.add_data(colour.r());
+		msg.add_data(colour.g());
+		msg.add_data(colour.b());
+	}
+	this->OnLedIndividualMsg(msg);
+}
+
+void LedRingPlugin::OnLedIndividualMsg(const ignition::msgs::Float_V &leds) {
 	auto data = leds.data();
 	ignerr << "Received an LED Control msg" << std::endl;
 	if(!this->_configured) {
