@@ -1,3 +1,4 @@
 rosbags/*
 .vscode/*
 log*
+*/__pycache__/*
