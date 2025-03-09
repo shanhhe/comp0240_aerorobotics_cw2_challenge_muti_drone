@@ -59,6 +59,9 @@ class DroneMotionRef(DroneInterface):
     def change_led_colour(self, colour):
         """Change the colours
 
+        Note: We've found some issues with providing combinations of r,g,b where one of the values < 255 on the real crazyflie. 
+        Not entirely sure whats going on here
+
         Args:
             colour (tuple): The LED RGB Colours (0-255)
         """
@@ -74,69 +77,37 @@ class DroneMotionRef(DroneInterface):
     def run_test(self):
         """ Run the mission """
 
-        # Set the drone to offboard mode. This prepares the drone to receive
-        # commands from outside of the flight controller. 
-        self.offboard()
-        self.get_logger().info("Offboard Mode")
+        color = [random.randint(0, 255) for _ in range(3)]
+        self.get_logger().info(f"Changing Colour to {color}")
+        self.change_led_colour((0, 0, 255)) 
 
-        # Arming the drone powers up the motors to prepare for flight
-        self.arm()
-        self.get_logger().info("Armed!")
-
-        # Takeoff to 1 meter
-        self.get_logger().info("Taking Off!")
-        res = self.takeoff(height=1.0, speed=0.5)
-        if res:
-            self.get_logger().info("Take off complete")
-        else:
-            self.get_logger().info("Take off Failed, exiting")
-            return
-        
-        # Wait a little bit
-        time.sleep(1.0)
-
-        # Position Control fly around a bit
-        speed = 1.5
-        # self.go_to.go_to_point([1, 0, 1.0], speed=speed)
-        self.change_led_colour((255, 0, 0))
-        time.sleep(1.0)
-        self.get_logger().info("Point 1")
-        # self.go_to.go_to_point([2, 0, 2.0], speed=speed)
-        self.change_led_colour((255, 0, 255))
-        time.sleep(1.0)
-        self.get_logger().info("Point 2")
-        # self.go_to.go_to_point([3, 0, 3.0], speed=speed)
-        self.change_led_colour((255, 255, 0))
-        self.get_logger().info("Point 3")
-        # self.go_to.go_to(3.0, -1.0, 2.5, speed=speed)
-        self.change_led_colour((125, 0, 125))
-        time.sleep(1.0)
-        self.get_logger().info("Point 4")
-        # self.go_to.go_to_point_with_yaw([4, 1, 3.0], angle=45.0, speed=speed)
-        self.change_led_colour(([78, 190, 255]))
-        time.sleep(1.0)
-        self.get_logger().info("Point 5")
-        # self.go_to.go_to_point_with_yaw([3, -2, 2.0], angle=-45.0, speed=speed)
-        self.change_led_colour((59, 255, 180))
-        time.sleep(1.0)
-        self.get_logger().info("Point 6")
-        # self.go_to.go_to_point_with_yaw([0, 0, 1.0], angle=0.0, speed=speed)
-        self.change_led_colour((129, 120, 180))
-        time.sleep(1.0)
-        self.get_logger().info("Point 7")
-
-        self.land()
 
 ############# Running the mission and Entrypoint #################################
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-    description="Starts camera mission")
-    parser.add_argument('-s', '--simulated',
-                        action='store_true', default=False)
-    parser.add_argument('-n', '--drone_name', default="cf0")
-    args = parser.parse_args()
+    description='Multi drone mission')
 
-    if args.simulated:
+    parser.add_argument('-n', '--namespaces',
+                        nargs="+",
+                        default=['drone0', 'drone1', 'drone2'],
+                        help='ID of the drone to be used in the mission')
+    parser.add_argument('-v', '--verbose',
+                        action='store_true',
+                        default=False,
+                        help='Enable verbose output')
+    parser.add_argument('-s', '--use_sim_time',
+                        action='store_true',
+                        default=False,
+                        help='Use simulation time')
+
+    args = parser.parse_args()
+    drones_namespace = args.namespaces
+    verbosity = args.verbose
+    use_sim_time = args.use_sim_time
+
+    print(args)
+
+    if args.use_sim_time:
         print("Mission running in simulation mode")
     else:
         print("Mission running in real mode")
@@ -144,14 +115,22 @@ if __name__ == '__main__':
     # Starts ROS2 Node in a script
     rclpy.init()
 
+    drones = args.namespaces
+    if not isinstance(args.namespaces, list):
+        drones = args.namespaces.split(",")
+
     # Create the drone object. Connects to the real/simulated drone and runs tests
-    uav = DroneMotionRef(args.drone_name, verbose=True)
+    uav = [DroneMotionRef(d, verbose=True) for d in drones] 
 
     # Runs the UAV TEST function
-    uav.run_test()
+    for _ in range(10):
+        for u in uav:
+            u.run_test()
+            time.sleep(1.0)
 
-    # Shuts down the UAV
-    uav.shutdown()
+    for u in uav:
+        # Shuts down the UAV
+        u.shutdown()
 
     # Stop ROS2 Node
     rclpy.shutdown()

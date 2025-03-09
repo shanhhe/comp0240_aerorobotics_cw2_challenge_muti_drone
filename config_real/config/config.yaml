@@ -13,7 +13,8 @@
       # # Motion Capture
       # external_odom: true
       # external_odom_topic: "self_localization/pose"
-      multi_ranger_deck: true  # Availability of multi ranger deck
+      # multi_ranger_deck: true  # Availability of multi ranger deck
+      led_deck: true
 
 
   # State Estimator
@@ -50,7 +51,7 @@
 drone0:
   platform:
     ros__parameters:
-      uri: radio://0/80/2M/E7E7E7E7E7
+      uri: radio://0/85/2M/E7E7E7E701
   # # Motion Capture
   # state_estimator:
   #   ros__parameters:
@@ -63,10 +64,10 @@ drone0:
   #       port: 5000
   #     calibration_file: "config/camera_calibration.yaml"
 
-# drone1:
-#   platform:
-#     ros__parameters:
-#       uri: radio://0/80/2M/E7E7E7E702
+drone1:
+  platform:
+    ros__parameters:
+      uri: radio://0/85/2M/E7E7E7E702
 
 # drone2:
 #   platform:
