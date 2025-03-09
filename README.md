@@ -10,12 +10,60 @@ This challenge has been developed on top of the aerostack2 platform
 
 This challenge revolves around swarming of drones and formation flight. We are asking you to investigate the difference in performance and application of decentralised swarm based approaches versus centralised approaches to performing formation flight with a group of 5 drones in a number of different scenarios. 
 
+### Swarming and Formation Flight
+
+**Swarming** refers to the collective behavior of multiple agents (drones) operating together using local rules without a centralized controller. These behaviors emerge from interactions between individual drones and their environment.
+
+Swarm robotics takes inspiration from nature—such as birds, fish, and insects—to design scalable, flexible, and robust robotic systems. Swarm behaviors are often decentralized and self-organized, meaning that individual drones follow simple local rules that collectively result in a global pattern of behavior.
+
+Common decentralized swarm control strategies:
+
+- Boids Model (Flocking Behavior) – Uses three simple rules: separation, alignment, and cohesion.
+- Potential Fields – Assigns virtual attractive/repulsive forces to goals and obstacles to guide movement.
+- Reinforcement Learning-Based Swarms – Uses machine learning to optimize local decision-making.
+- Bio-Inspired Methods – Such as pheromone-based navigation or genetic algorithms.
+
+**Formation flight** is a more structured approach to multi-agent coordination where drones maintain a specific geometric arrangement while moving. Unlike general swarming, formation flying often requires precise positioning and coordination.
+
+Common formation flight strategies:
+
+- Centralized Approaches
+    - Leader-Follower – One drone acts as the leader while others maintain a relative position.
+    - Multi-Agent Path Planning (MAPF) – Centralized planning optimizes collision-free paths.
+    - Virtual Structures – The entire formation is treated as a rigid body and controlled as one unit.
+- Decentralized Approaches
+    - Boids with Formation Constraints – Similar to flocking but with additional formation control.
+    - Consensus-Based Control – Drones agree on formation changes based on local communication.
+    - Distributed Potential Fields – Drones use attraction/repulsion forces while maintaining formation.
+
+Swarming and formation flight have numerous real-world applications across various industries. 
+
+- In aerial surveillance and search-and-rescue, swarming drones can quickly cover large areas, scan for missing persons, or assess disaster zones without relying on a single point of failure. 
+- In logistics and delivery, drone swarms can efficiently transport packages in coordinated formations, optimizing airspace usage and reducing delivery times. 
+- In environmental monitoring, swarms of drones can track wildlife migrations, detect deforestation, or monitor air and water quality over vast regions. 
+- In entertainment and art, synchronized drone light shows use precise formation flight to create complex aerial displays, offering an innovative alternative to fireworks. 
+
+These examples highlight the versatility of swarm robotics in enhancing efficiency, scalability, and adaptability in real-world operations.
+
+### Your Challenge
+
 We have created a competition style course with 4 different stages to complete one after another.  
 
-1. **Stage 1: Changing Formations**: Implementing the formation flight algorithms which have the ability to changing the formation periodically whilst maintaining a circular trajectory. 
-2. **Stage 2: Window Traversal**: Using your formation flying methods attempt to maneouever your swarm of drones through two windows slits. 
-3. **Stage 3: Forest Traversal**: Using your formation flying methods attempt to maneouever your swarm of drones through a forest of trees.
-4. **Stage 4: Dynamic Obstacles**: Using your formation flying methods attempt to maneouever your swarm of drones through a set of dynamically moving obstacles.  
+1. **Stage 1: Changing Formations**: 
+    - Implementing the formation flight algorithms which have the ability to changing the formation periodically whilst maintaining a circular trajectory. 
+    - Cmpare different formation shapes (Line, V-shape, Diamond, Circular Orbit, Grid, Staggered)
+
+2. **Stage 2: Window Traversal**: 
+    - Using your formation flying methods attempt to maneouever your swarm of drones through two narrow windows slits. 
+    - Consider how to split, rejoin, or compress the formation to pass through gaps.
+
+3. **Stage 3: Forest Traversal**: 
+    - Using your formation flying methods attempt to maneouever your swarm of drones through a forest of trees.
+    - Your swarm should avoid collisions and maintain efficiency in movement.
+
+4. **Stage 4: Dynamic Obstacles**: 
+    - Using your formation flying methods attempt to maneouever your swarm of drones through a set of dynamically moving obstacles.  
+    - You may need adaptive formation control to respond to changes in real time.
 
 ![schematic](docs/schematic.png)
 
