@@ -1,16 +1,61 @@
-# Project Drone Light Show
+# COMP0240 Multi-Drone Challenge CW2
 
-Please refer to https://aerostack2.github.io/_02_examples/gazebo/project_gazebo/index.html for more information.
+This repository contains the second coursework for the UCL Aerial Robotics Module COMP0240.
+
+![scenario1](docs/scenario1.png)
+
+This challenge has been developed on top of the aerostack2 platform 
+
+## Challenge
+
+This challenge revolves around swarming of drones and formation flight. We are asking you to investigate the difference in performance and application of decentralised swarm based approaches versus centralised approaches to performing formation flight with a group of 5 drones in a number of different scenarios. 
+
+We have created a competition style course with 4 different stages to complete one after another.  
+
+1. **Stage 1: Changing Formations**: Implementing the formation flight algorithms which have the ability to changing the formation periodically whilst maintaining a circular trajectory. 
+2. **Stage 2: Window Traversal**: Using your formation flying methods attempt to maneouever your swarm of drones through two windows slits. 
+3. **Stage 3: Forest Traversal**: Using your formation flying methods attempt to maneouever your swarm of drones through a forest of trees.
+4. **Stage 4: Dynamic Obstacles**: Using your formation flying methods attempt to maneouever your swarm of drones through a set of dynamically moving obstacles.  
+
+![schematic](docs/schematic.png)
+
+You will be investigating, developing and testing your algorithm primarily in simulation. Hopefully we will get a chance to run these on the real crazyflies. Points are awarded on the completion of each stage, and performance within. The winning group will be the group with the most points at the end of the competition.
 
 ## Installation
 
-To install this project, clone the repository:
+To install this project, create your ros workspace and clone the following into the source repo:
 
 ```bash
-git clone https://github.com/aerostack2/project_gazebo
+mkdir -p /challenge_multi_drone_cw/src
+cd /challenge_multi_drone_cw/src
+git clone https://github.com/UCL-MSC-RAI-COMP0240/aerostack2.git
+git clone https://github.com/UCL-MSC-RAI-COMP0240/as2_platform_crazyflie.git # If intending to also fly on the crazyflie
 ```
 
-To start using this project, please go to the root folder of the project.
+> *Note*: Aerostack is our own branch as has addition for multi-drone stuff. This means you should build it from scratch using our repository to reduce potential issues. 
+
+> *Note*: Crazyflie AS2 interface has been augmented with LED Control
+
+
+Also then clone the repository into the **src** folder:
+
+```bash
+cd /challenge_multi_drone_cw/src
+git clone https://github.com/UCL-MSC-RAI-COMP0240/challenge_multi_drone.git
+```
+
+Please go to the root folder of the project and build it:
+
+```bash
+cd /challenge_multi_drone_cw
+colcon build
+```
+
+Once built, all of the following commads can be run from inside the root of this repository
+
+```bash
+cd /challenge_multi_drone_cw/src/challenge_multi_drone
+```
 
 ## Execution
 
@@ -22,8 +67,8 @@ To launch aerostack2 nodes for each drone, execute once the following command:
 ```
 
 The flags for the components launcher are:
-
-- **-m**: multi agent. Default not set
+- **-s**: scenario file to load from. Default is 'scenarios/scenario1.yaml'"
+- **-w**: world config file to use as base template. Default is 'config_sim/config/world.yaml'"
 - **-n**: select drones namespace to launch, values are comma separated. By default, it will get all drones from world description file
 - **-s**: if set, the simulation will not be launched. Default launch simulation
 - **-g**: launch using gnome-terminal instead of tmux. Default not set
@@ -58,6 +103,15 @@ There are several missions that can be executed:
   ```bash
   ./launch_ground_station.bash -m -t
   ```
+- **AS2 Multi Drone**: You can explicitly specify the names of the drones to monitor
+  ```bash
+  ./launch_ground_station.bash -n drone0,drone1,drone2
+  ```
+
+  ```bash
+  python3 mission_swarm.py -n drone0 drone1 drone2
+  ```
+
 - **AS2 Python API single drone mission**: You can execute a mission that used AS2 Python API, launching the mission with:
   ```bash
   python3 mission.py
@@ -101,8 +155,12 @@ tmux kill-server
 
 If you are using gnome-terminal, you can end the execution by closing the terminal.
 
+> Note sometimes you may find gazebo stays running for some reason. It is recommended that you install hte `htop` utility. Running htop use F4 to search for gazebo. Select the running gazebo process and press F9. Then select `SIGKILL` and that will kill it. 
+
 
 ## Developers guide
+
+**Slightly out of date**
 
 All projects in aerostack2 are structured in the same way. The project is divided into the following directories:
 

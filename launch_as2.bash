@@ -2,8 +2,8 @@
 
 usage() {
     echo "  options:"
-    echo "      -s: scenario file to load from"
-    echo "      -w: world confg file to use as base template"
+    echo "      -s: scenario file to load from. Default is 'scenarios/scenario1.yaml'"
+    echo "      -w: world config file to use as base template. Default is 'config_sim/config/world.yaml'"
     echo "      -n: select drones namespace to launch, values are comma separated. By default, it will get all drones from world description file"
     echo "      -c: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
     echo "      -g: launch using gnome-terminal instead of tmux. Default not set"
@@ -16,7 +16,7 @@ launch_simulation="true"
 use_gnome="false"
 
 # Arg parser
-while getopts "sm:n:cg" opt; do
+while getopts "sw:n:cg" opt; do
   case ${opt} in
     s )
       scenario_file="${OPTARG}"
