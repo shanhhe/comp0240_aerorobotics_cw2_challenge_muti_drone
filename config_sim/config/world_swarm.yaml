@@ -8,14 +8,14 @@ drones:
     model_name: "drone0"
     flight_time: 60
     xyz:
-      - -2.0
+      - -1.0
       - 0.0
       - 0.2
   - model_type: "crazyflie_led_ring"
     model_name: "drone1"
     flight_time: 60
     xyz:
-      - 2.0
+      - 1.0
       - 0.0
       - 0.2
   - model_type: "crazyflie_led_ring"
@@ -24,5 +24,19 @@ drones:
     xyz:
       - 0.0
       - 0.0
+      - 0.2
+  - model_type: "crazyflie_led_ring"
+    model_name: "drone3"
+    flight_time: 60
+    xyz:
+      - 0.0
+      - 1.0
+      - 0.2
+  - model_type: "crazyflie_led_ring"
+    model_name: "drone4"
+    flight_time: 60
+    xyz:
+      - 0.0
+      - -1.0
       - 0.2
 

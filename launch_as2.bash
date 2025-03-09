@@ -2,23 +2,27 @@
 
 usage() {
     echo "  options:"
-    echo "      -m: multi agent (only needed to be set for simulation). Default not set"
+    echo "      -s: scenario file to load from"
+    echo "      -w: world confg file to use as base template"
     echo "      -n: select drones namespace to launch, values are comma separated. By default, it will get all drones from world description file"
     echo "      -c: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
     echo "      -g: launch using gnome-terminal instead of tmux. Default not set"
 }
 
 # Initialize variables with default values
-swarm="false"
+scenario_file="scenarios/scenario1.yaml"
 drones_namespace_comma=""
 launch_simulation="true"
 use_gnome="false"
 
 # Arg parser
-while getopts "mn:cg" opt; do
+while getopts "sm:n:cg" opt; do
   case ${opt} in
-    m )
-      swarm="true"
+    s )
+      scenario_file="${OPTARG}"
+      ;;
+    w )
+      world_config="${OPTARG}"
       ;;
     n )
       drones_namespace_comma="${OPTARG}"
@@ -49,13 +53,16 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 CONFIG_SIM="${SCRIPT_DIR}/config_sim"
 CONFIG_REAL="${SCRIPT_DIR}/config_real"
 
+simulation_config_folder="${CONFIG_SIM}/world"
+simulation_file_name="world.yaml"
+simulation_config_file="${simulation_config_folder}/${simulation_file_name}"
+
 config_folder=""
-simulation_config_file=""
 if [[ ${launch_simulation} == "true" ]]; then
   config_folder="${CONFIG_SIM}"
   # Ensure this folders gazebo packages are on the path for both aerostack2 and gazebo to read...
-  export GZ_SIM_RESOURCE_PATH=$GZ_SIM_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins"
-  export IGN_GAZEBO_RESOURCE_PATH=$IGN_GAZEBO_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins"
+  export GZ_SIM_RESOURCE_PATH=$GZ_SIM_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
+  export IGN_GAZEBO_RESOURCE_PATH=$IGN_GAZEBO_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
   export AS2_EXTRA_DRONE_MODELS=crazyflie_led_ring
 else
   config_folder="${CONFIG_REAL}"
@@ -63,19 +70,19 @@ fi
 
 drone_config="${config_folder}/config/config.yaml"
 
-# Set simulation world description config file
-if [[ ${swarm} == "true" ]]; then
-  simulation_config_file="${CONFIG_SIM}/config/world_swarm.yaml"
-else
-  simulation_config_file="${CONFIG_SIM}/config/world.yaml"
+# Set the world configuration
+if [ -z "$world_config" ]; then
+  world_config="${config_folder}/config/world.yaml"
 fi
 
+# Generate Simulated World from configuration
+python3 "${SCRIPT_DIR}/utils/generate_world_from_scenario.py" "${scenario_file}" -w "${world_config}" -o "${simulation_config_folder}" -f "${simulation_file_name}"
 
 # If no drone namespaces are provided, get them from the world description config file 
 if [ -z "$drones_namespace_comma" ]; then
 
   if [[ ${launch_simulation} == "true" ]]; then
-    dnamespace_lookup_file="${simulation_config_file}"
+    dnamespace_lookup_file="${world_config}"
   else
     dnamespace_lookup_file="${drone_config}"
   fi
