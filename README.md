@@ -118,7 +118,7 @@ The flags for the components launcher are:
 - **-s**: scenario file to load from. Default is 'scenarios/scenario1.yaml'"
 - **-w**: world config file to use as base template. Default is 'config_sim/config/world.yaml'"
 - **-n**: select drones namespace to launch, values are comma separated. By default, it will get all drones from world description file
-- **-s**: if set, the simulation will not be launched. Default launch simulation
+- **-c**: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
 - **-g**: launch using gnome-terminal instead of tmux. Default not set
 
 ### 2. Launch aerostack2 nodes for the ground station
@@ -131,6 +131,7 @@ To launch aerostack2 nodes for the ground station, execute once the following co
 The flags for the components launcher are:
 
 - **-m**: multi agent. Default not set
+- **-c**: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
 - **-t**: launch keyboard teleoperation. Default not launch
 - **-v**: open rviz. Default not launch
 - **-r**: record rosbag. Default not launch
