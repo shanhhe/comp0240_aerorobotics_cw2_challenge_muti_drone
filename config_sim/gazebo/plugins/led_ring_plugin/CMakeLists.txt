@@ -23,7 +23,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 # find_package(gazebo_msgs REQUIRED)
-find_package(gazebo_ros REQUIRED)
+# find_package(gazebo_ros REQUIRED) # Removed as used to interface with gazebo classic and no longer used
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -56,7 +56,7 @@ target_link_libraries(${PLUGIN_NAME}
 )
 ament_target_dependencies( ${PLUGIN_NAME}
   rclcpp
-  gazebo_ros
+  # gazebo_ros
   geometry_msgs
   std_msgs
 )
@@ -66,7 +66,7 @@ ament_export_libraries(${PLUGIN_NAME})
 ament_export_dependencies(rclcpp)
 ament_export_dependencies(gazebo_dev)
 ament_export_dependencies(gazebo_msgs)
-ament_export_dependencies(gazebo_ros)
+# ament_export_dependencies(gazebo_ros)
 
 if(NOT WIN32)
   if(NOT APPLE)
