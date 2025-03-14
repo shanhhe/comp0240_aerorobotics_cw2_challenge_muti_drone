@@ -99,6 +99,15 @@ cd /challenge_multi_drone_cw
 colcon build
 ```
 
+> **Note**: This repo contains a gazebo plugin to simulate the crazyflie LED deck. There have been some reports of issues with JSONCPP. If you get this issue, I have provided a modified `cmake` file to replace the existing one.
+> 
+> ```sudo cp challenge_multi_drone/config_sim/gazebo/plugins/led_ring_plugin/jsoncpp-namespaced-targets.cmake /usr/lib/x86_64-linux-gnu/cmake/jsoncpp/jsoncpp-namespaced-targets.cmake```
+>
+> Hopefully the `/usr/lib` directory is correct, if not then you will need to find the location of your jsoncpp library. 
+>
+> See [This Issue for more details](https://github.com/UCL-MSC-RAI-COMP0240/challenge_multi_drone/issues/1)
+
+
 Once built, all of the following commads can be run from inside the root of this repository
 
 ```bash
