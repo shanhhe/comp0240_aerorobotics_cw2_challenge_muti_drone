@@ -74,8 +74,8 @@ You will be investigating, developing and testing your algorithm primarily in si
 To install this project, create your ros workspace and clone the following into the source repo:
 
 ```bash
-mkdir -p /challenge_multi_drone_cw/src
-cd /challenge_multi_drone_cw/src
+mkdir -p challenge_multi_drone_cw/src
+cd challenge_multi_drone_cw/src
 git clone https://github.com/UCL-MSC-RAI-COMP0240/aerostack2.git
 git clone https://github.com/UCL-MSC-RAI-COMP0240/as2_platform_crazyflie.git # If intending to also fly on the crazyflie
 ```
@@ -88,14 +88,14 @@ git clone https://github.com/UCL-MSC-RAI-COMP0240/as2_platform_crazyflie.git # I
 Also then clone the repository into the **src** folder:
 
 ```bash
-cd /challenge_multi_drone_cw/src
+cd challenge_multi_drone_cw/src
 git clone https://github.com/UCL-MSC-RAI-COMP0240/challenge_multi_drone.git
 ```
 
 Please go to the root folder of the project and build it:
 
 ```bash
-cd /challenge_multi_drone_cw
+cd challenge_multi_drone_cw
 colcon build
 ```
 
@@ -111,7 +111,7 @@ colcon build
 Once built, all of the following commads can be run from inside the root of this repository
 
 ```bash
-cd /challenge_multi_drone_cw/src/challenge_multi_drone
+cd challenge_multi_drone_cw/src/challenge_multi_drone
 ```
 
 ## Execution
