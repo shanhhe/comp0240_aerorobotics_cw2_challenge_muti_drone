@@ -313,14 +313,15 @@ def generate_as2_floor_tiles_config(scenario, output_model_folder):
         "stage4": (1.0, 0.0, 1.0, 0.5),
     }
     for stage, colour in mapping.items():
-      loc = scenario[stage]["stage_center"]
-      model_name =  f"floor_{stage}"
-      generate_floor_model(output_model_folder, model_name, size, colour)
-      objects.append({
-          "model_type": model_name,
-          "model_name": model_name,
-          "xyz": [loc[0], loc[1], 0.0],
-      })
+      if stage in scenario: # Check if stage is actually in scenario
+        loc = scenario[stage]["stage_center"]
+        model_name =  f"floor_{stage}"
+        generate_floor_model(output_model_folder, model_name, size, colour)
+        objects.append({
+            "model_type": model_name,
+            "model_name": model_name,
+            "xyz": [loc[0], loc[1], 0.0],
+        })
     return objects
 
 # Write the JSON world configuration
@@ -337,11 +338,14 @@ def write_world_config(scenario, world_file_path, output_folder, output_world_fi
     # Add obstacles as objects
     if "objects" not in world_config:
       world_config["objects"] = []
-    window_objs = generate_as2_windows_config(scenario, output_models_folder)
-    world_config["objects"].extend(window_objs)
 
-    forest_objs = generate_as2_forest_config(scenario, output_models_folder)
-    world_config["objects"].extend(forest_objs)
+    if "stage2" in scenario:
+      window_objs = generate_as2_windows_config(scenario, output_models_folder)
+      world_config["objects"].extend(window_objs)
+
+    if "stage3" in scenario:
+      forest_objs = generate_as2_forest_config(scenario, output_models_folder)
+      world_config["objects"].extend(forest_objs)
 
     floor_objs = generate_as2_floor_tiles_config(scenario, output_models_folder)
     world_config["objects"].extend(floor_objs)
@@ -364,6 +368,7 @@ def main():
 
     args = parser.parse_args()
 
+    print(f"Processing scenario {args.input_scenario}")
     scenario = read_yaml(args.input_scenario)
     write_world_config(scenario, args.world_template, args.output_folder, args.output_world_file_name)
     print(f"Scenario from {args.input_scenario} with template {args.world_template} has world configuration written to {os.path.join(args.output_folder, args.output_world_file_name)}")

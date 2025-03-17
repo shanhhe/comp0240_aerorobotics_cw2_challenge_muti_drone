@@ -1,4 +1,5 @@
 #!/bin/bash
+set +e 
 
 usage() {
     echo "  options:"
@@ -16,7 +17,7 @@ launch_simulation="true"
 use_gnome="false"
 
 # Arg parser
-while getopts "sw:n:cg" opt; do
+while getopts "s:w:n:cg" opt; do
   case ${opt} in
     s )
       scenario_file="${OPTARG}"
