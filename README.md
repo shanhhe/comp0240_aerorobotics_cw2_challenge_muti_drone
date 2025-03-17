@@ -215,6 +215,20 @@ If you are using gnome-terminal, you can end the execution by closing the termin
 
 > Note sometimes you may find gazebo stays running for some reason. It is recommended that you install hte `htop` utility. Running htop use F4 to search for gazebo. Select the running gazebo process and press F9. Then select `SIGKILL` and that will kill it. 
 
+## Running Notes:
+
+If you are running on ubuntu, depending on your system you may see a few different things going wrong:
+
+1. Gazebo struggles to load up assets - this is likely either a ROS2 launch problem or a not enough CPU problem leading to race conditions. Launch with fewer drones. (Maybe even look into using the AS2 Multicopter rather than gazebo)
+2. Aerostack2/ROS2 struggles with lots of drones - this is likely a not enough CPU problem
+
+
+One thing that might help is forcing your terminal to use the NVIDIA GPU. It seems (depending on the laptop/desktop setup) that sometimes the terminal window will not run gazebo in gpu mode. To test this run this system, and in a separate terminal check `nvidia-smi`. If gazebo is using the GPU it will show there. If its not, you can force it to use the discrete GPU by adding the following lines to your `~/.bashrc` and restart your terminal, it should enable the GPU:
+
+```
+export __NV_PRIME_RENDER_OFFLOAD=1
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
+```
 
 ## Developers guide
 
