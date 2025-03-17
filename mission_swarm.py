@@ -232,18 +232,18 @@ def get_path(i: int) -> list:
 
     """
     center = [0.0, 0.0]
-    delta_frontward = Choreographer.delta_formation(3, 3, 0, center)
-    delta_backward = Choreographer.delta_formation(3, 3, 180, center)
-    line = Choreographer.line_formation(3, 180, center)
+    delta_frontward = Choreographer.delta_formation(2, 2, 0, center)
+    delta_backward = Choreographer.delta_formation(2, 2, 180, center)
+    line = Choreographer.line_formation(2, 180, center)
 
     h1 = 1.0
     h2 = 2.0
-    h3 = 3.0
+    h3 = 1.0
     line_formation = [line[i] + [h3]]
-    return Choreographer.do_cycle(delta_frontward, i, h1) + \
-        Choreographer.do_cycle(delta_backward, i, h2) + \
-        Choreographer.do_cycle(delta_frontward, i, h3) + \
-        line_formation
+    return Choreographer.do_cycle(delta_frontward, i, h1) + line_formation
+        # Choreographer.do_cycle(delta_backward, i, h2) + \
+        # Choreographer.do_cycle(delta_frontward, i, h3) + \
+        # line_formation
 
 
 def confirm(msg: str = 'Continue') -> bool:

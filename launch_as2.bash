@@ -64,19 +64,20 @@ if [[ ${launch_simulation} == "true" ]]; then
   export GZ_SIM_RESOURCE_PATH=$GZ_SIM_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
   export IGN_GAZEBO_RESOURCE_PATH=$IGN_GAZEBO_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
   export AS2_EXTRA_DRONE_MODELS=crazyflie_led_ring
+
+  # Set the world configuration
+  if [ -z "$world_config" ]; then
+    world_config="${config_folder}/config/world.yaml"
+  fi
+
+  # Generate Simulated World from configuration
+  python3 "${SCRIPT_DIR}/utils/generate_world_from_scenario.py" "${scenario_file}" -w "${world_config}" -o "${simulation_config_folder}" -f "${simulation_file_name}"
+
 else
   config_folder="${CONFIG_REAL}"
 fi
 
 drone_config="${config_folder}/config/config.yaml"
-
-# Set the world configuration
-if [ -z "$world_config" ]; then
-  world_config="${config_folder}/config/world.yaml"
-fi
-
-# Generate Simulated World from configuration
-python3 "${SCRIPT_DIR}/utils/generate_world_from_scenario.py" "${scenario_file}" -w "${world_config}" -o "${simulation_config_folder}" -f "${simulation_file_name}"
 
 # If no drone namespaces are provided, get them from the world description config file 
 if [ -z "$drones_namespace_comma" ]; then

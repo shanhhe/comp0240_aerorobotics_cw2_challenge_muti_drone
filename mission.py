@@ -170,7 +170,7 @@ if __name__ == '__main__':
     success = drone_start(uav)
     if success:
         success = drone_run(uav)
-    # sleep(5.0)
+    # sleep(10.0)
     success = drone_end(uav)
 
     uav.shutdown()
