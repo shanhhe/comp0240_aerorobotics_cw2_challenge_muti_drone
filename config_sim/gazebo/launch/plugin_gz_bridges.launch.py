@@ -44,7 +44,8 @@ def drone_bridges(context):
     bridges = [
         # (f"/model/{namespace}/leds/status", "leds/status", "ignition.msgs.Float_V", "ros_gz_interfaces/msg/Float32Array"),
         # (f"/model/{namespace}/leds/control_individual", "leds/control_indvidual", "ignition.msgs.Float_V", "ros_gz_interfaces/msg/Float32Array"),
-        (f"/model/{namespace}/leds/control", "leds/control", "ignition.msgs.Color", "std_msgs/msg/ColorRGBA")
+        (f"/model/{namespace}/leds/control", "leds/control", "ignition.msgs.Color", "std_msgs/msg/ColorRGBA"),
+        (f"/dynamic_obstacles/locations", "/dynamic_obstacles/locations", "ignition.msgs.Pose", "geometry_msgs/msg/PoseStamped")
     ]
 
     nodes = []

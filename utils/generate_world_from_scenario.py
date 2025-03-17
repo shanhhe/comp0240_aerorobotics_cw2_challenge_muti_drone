@@ -3,180 +3,10 @@ import json
 import math
 import argparse
 import os
+import random
 from jinja2 import Template
 
-# Template for SDF file
-SDF_TREE_TEMPLATE = """<?xml version="1.0" ?>
-<sdf version="1.6">
-  <model name="{{ model_name }}">
-    <static>true</static>
-    <link name="tree">
-      <visual name="tree_visual">
-        <geometry>
-          <cylinder>
-            <radius>{{ diameter / 2 }}</radius>
-            <length>{{ height }}</length>
-          </cylinder>
-        </geometry>
-        <material>
-          <ambient>0.3 0.2 0.1 1.0</ambient>
-          <diffuse>0.3 0.2 0.1 1.0</diffuse>
-        </material>
-      </visual>
-      <collision name="tree_collision">
-        <geometry>
-          <cylinder>
-            <radius>{{ diameter / 2 }}</radius>
-            <length>{{ height }}</length>
-          </cylinder>
-        </geometry>
-      </collision>
-      <pose>0 0 {{ height / 2 }} 0 0 0</pose>
-    </link>
-  </model>
-</sdf>
-"""
-
-SDF_FLOOR_TILE_TEMPLATE = """<?xml version="1.0" ?>
-<sdf version="1.6">
-  <model name="{{ model_name }}">
-    <static>true</static>
-    <link name="floor_tile">
-      <visual name="tile_visual">
-        <geometry>
-          <box>
-            <size>{{ width }} {{ length }} 0.01</size>
-          </box>
-        </geometry>
-        <material>
-          <ambient>{{ colour }}</ambient>
-          <diffuse>{{ colour }}</diffuse>
-        </material>
-      </visual>
-      <pose>0 0 0.005 0 0 0</pose>
-    </link>
-  </model>
-</sdf>
-"""
-
-# Template for SDF Window file
-SDF_WINDOW_TEMPLATE = """<?xml version="1.0" ?>
-<sdf version="1.6">
-  <model name="{{ model_name }}">
-    <static>true</static>
-
-    <!-- Bottom Wall (below window) -->
-    <link name="bottom_wall">
-      <visual name="bottom_visual">
-        <geometry>
-          <box>
-            <size>{{ room_width }} {{ wall_depth }} {{ window_bottom }}</size>
-          </box>
-        </geometry>
-        <material>
-          <ambient>0.5 0.5 0.5 1.0</ambient>
-          <diffuse>0.5 0.5 0.5 1.0</diffuse>
-        </material>
-      </visual>
-      <collision name="bottom_collision">
-        <geometry>
-          <box>
-            <size>{{ room_width }} {{ wall_depth }} {{ window_bottom }}</size>
-          </box>
-        </geometry>
-      </collision>
-      <pose>0 0 {{ window_bottom / 2 }} 0 0 0</pose>
-    </link>
-
-    <!-- Top Wall (above window) -->
-    <link name="top_wall">
-      <visual name="top_visual">
-        <geometry>
-          <box>
-            <size>{{ room_width }} {{ wall_depth }} {{ wall_top }}</size>
-          </box>
-        </geometry>
-        <material>
-          <ambient>0.5 0.5 0.5 1.0</ambient>
-          <diffuse>0.5 0.5 0.5 1.0</diffuse>
-        </material>
-      </visual>
-      <collision name="top_collision">
-        <geometry>
-          <box>
-            <size>{{ room_width }} {{ wall_depth }} {{ wall_top }}</size>
-          </box>
-        </geometry>
-      </collision>
-      <pose>0 0 {{ window_bottom + window_height + (wall_top / 2) }} 0 0 0</pose>
-    </link>
-
-    <!-- Left Wall (left of window) -->
-    <link name="left_wall">
-      <visual name="left_visual">
-        <geometry>
-          <box>
-            <size>{{ left_width }} {{ wall_depth }} {{ room_height }}</size>
-          </box>
-        </geometry>
-        <material>
-          <ambient>0.5 0.5 0.5 1.0</ambient>
-          <diffuse>0.5 0.5 0.5 1.0</diffuse>
-        </material>
-      </visual>
-      <collision name="left_collision">
-        <geometry>
-          <box>
-            <size>{{ left_width }} {{ wall_depth }} {{ room_height }}</size>
-          </box>
-        </geometry>
-      </collision>
-      <pose>{{ left_x }} 0 {{ room_height / 2 }} 0 0 0</pose>
-    </link>
-
-    <!-- Right Wall (right of window) -->
-    <link name="right_wall">
-      <visual name="right_visual">
-        <geometry>
-          <box>
-            <size>{{ right_width }} {{ wall_depth }} {{ room_height }}</size>
-          </box>
-        </geometry>
-        <material>
-          <ambient>0.5 0.5 0.5 1.0</ambient>
-          <diffuse>0.5 0.5 0.5 1.0</diffuse>
-        </material>
-      </visual>
-      <collision name="right_collision">
-        <geometry>
-          <box>
-            <size>{{ right_width }} {{ wall_depth }} {{ room_height }}</size>
-          </box>
-        </geometry>
-      </collision>
-      <pose>{{ right_x }} 0 {{ room_height / 2 }} 0 0 0</pose>
-    </link>
-
-  </model>
-</sdf>
-"""
-
-
-# Template for model.config
-MODEL_CONFIG_TEMPLATE = """<?xml version="1.0" ?>
-<model>
-  <name>{{ model_name }}</name>
-  <version>1.0</version>
-  <sdf version="1.6">{{ model_name }}.sdf</sdf>
-  <author>
-    <name>Your Name</name>
-    <email>your.email@example.com</email>
-  </author>
-  <description>
-    {{ model_name }}
-  </description>
-</model>
-"""
+from sdf_templates import *
 
 def generate_window_model(output_dir, model_name, 
                           window_x, window_y, 
@@ -227,6 +57,42 @@ def generate_tree_model(output_dir, model_name, diameter, height):
     with open(os.path.join(model_dir, f"{model_name}.sdf"), "w") as sdf_file:
         sdf_file.write(sdf_content)
     
+    # Render model.config
+    config_content = Template(MODEL_CONFIG_TEMPLATE).render(
+        model_name=model_name,
+    )
+    with open(os.path.join(model_dir, "model.config"), "w") as config_file:
+        config_file.write(config_content)
+
+def generate_dynamic_object_model(output_dir, model_name, size, boundaries, velocity, angle):
+    """
+    Generate an SDF file and model.config for a dynamic object.
+
+    :param output_dir: Directory where model files will be saved.
+    :param model_name: Name of the model.
+    :param size: Tuple (width, length, height) defining the object size.
+    :param boundaries: Dict with keys min_x, max_x, min_y, max_y.
+    :param velocity: Movement velocity of the object.
+    :param angle: Initial angle of the object in radians.
+    """
+    model_dir = os.path.join(output_dir, model_name)
+    os.makedirs(model_dir, exist_ok=True)
+    
+    # Render SDF file
+    sdf_content = Template(SDF_DYNAMIC_OBJECT_TEMPLATE).render(
+        model_name=model_name,
+        width=size[0], length=size[1], height=size[2],
+        boundary_min_x=boundaries["min_x"],
+        boundary_max_x=boundaries["max_x"],
+        boundary_min_y=boundaries["min_y"],
+        boundary_max_y=boundaries["max_y"],
+        movement_velocity=velocity,
+        initial_angle=angle
+    )
+    
+    with open(os.path.join(model_dir, f"{model_name}.sdf"), "w") as sdf_file:
+        sdf_file.write(sdf_content)
+
     # Render model.config
     config_content = Template(MODEL_CONFIG_TEMPLATE).render(
         model_name=model_name,
@@ -302,6 +168,39 @@ def generate_as2_forest_config(scenario, output_model_folder):
         })
     return objects
 
+def generate_as2_dynamic_objects_config(scenario, output_model_folder):
+    objects = []
+    size = scenario["stage_size"]
+    stage = scenario["stage4"]
+
+    for i in range(stage["num_obstacles"]):
+        center = stage["stage_center"]
+
+        # Get random start location relative to stage center and stage size
+        loc = [l + (random.random() * s) - (s/2.0) for s, l in zip(size, center)]
+        
+        boundaries = {
+            "min_x": center[0] - size[0]/2.0,
+            "min_y": center[1] - size[1]/2.0,
+            "max_x": center[0] + size[0]/2.0,
+            "max_y": center[1] + size[1]/2.0
+        }
+
+        object_size = [0.5, 0.5, 5.0]
+
+        model_name = f"dynamic_obstacle_{i}"
+        generate_dynamic_object_model(output_model_folder, model_name, 
+                                      object_size, boundaries=boundaries, 
+                                      velocity=stage["obstacle_velocity"],
+                                      angle=random.random() * 2 * math.pi)
+        objects.append({
+            "model_type": model_name,
+            "model_name": model_name,
+            "xyz": [loc[0], loc[1], 0.0],
+        })
+    return objects
+
+
 def generate_as2_floor_tiles_config(scenario, output_model_folder):
     objects = []
     size = scenario["stage_size"]
@@ -346,6 +245,10 @@ def write_world_config(scenario, world_file_path, output_folder, output_world_fi
     if "stage3" in scenario:
       forest_objs = generate_as2_forest_config(scenario, output_models_folder)
       world_config["objects"].extend(forest_objs)
+    
+    if "stage4" in scenario:
+      dynamic_objs = generate_as2_dynamic_objects_config(scenario, output_models_folder)
+      world_config["objects"].extend(dynamic_objs)
 
     floor_objs = generate_as2_floor_tiles_config(scenario, output_models_folder)
     world_config["objects"].extend(floor_objs)
