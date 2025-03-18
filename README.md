@@ -153,17 +153,41 @@ The flags for the components launcher are:
 ### 3. Launch a mission
 There are several missions that can be executed:
 
-- **AS2 keyboard teleoperation control**: You can use the keyboard teleoperation launched with the ground station, using the flag `-t`:
+- **AS2 Multi Drone**: 
+  
+  In terminal 1
   ```bash
-  ./launch_ground_station.bash -t
+  ./launch_as2.bash
   ```
-  You can launch a **swarm of drones** with the flag `-m` and control them with the keyboard teleoperation, as:
+
+  In a different terminal 2
   ```bash
-  ./launch_as2.bash -m
+  ./launch_ground_station.bash
   ```
+
+  And then in one of your ground station terminals (or separately in a different terminal)
   ```bash
-  ./launch_ground_station.bash -m -t
+  python3 mission_swarm.py 
   ```
+
+- **AS2 Multi Drone**: You can specify the specific scenario you wish to run
+  ```bash
+  ./launch_as2.bash -s scenarios/scenario1_stage1.yaml
+  ```
+
+  ```bash
+  python3 mission_swarm.py 
+  ```
+
+- **AS2 Multi Drone**: You can change the number of drones by providing a different world file (you could also modify the default `world.yaml` as well)
+  ```bash
+  ./launch_as2.bash -w config_sim/config/world_single.yaml
+  ```
+
+  ```bash
+  ./launch_as2.bash -w config_sim/config/world_swarm.yaml
+  ```
+
 - **AS2 Multi Drone**: You can explicitly specify the names of the drones to monitor
   ```bash
   ./launch_ground_station.bash -n drone0,drone1,drone2
@@ -175,30 +199,7 @@ There are several missions that can be executed:
 
 - **AS2 Python API single drone mission**: You can execute a mission that used AS2 Python API, launching the mission with:
   ```bash
-  python3 mission.py
-  ```
-- **AS2 Python API single drone mission using GPS**: You can execute a mission that used AS2 Python API with GPS, launching the mission with:
-  ```bash
-  python3 mission_gps.py
-  ```
-- **AS2 Python API swarm of drones mission**: You can execute a mission with a swarm of drones that used AS2 Python API, launching the mission with:
-  ```bash
-  python3 mission_swarm.py
-  ```
-  You must launch a **swarm of drones** with the flag `-m`, as:
-  ```bash
-  ./launch_as2.bash -m
-  ```
-  ```bash
-  ./launch_ground_station.bash -m
-  ```
-- **AS2 Mission Interpreter single drone mission**: You can execute a mission that used AS2 Mission Interpreter, launching the mission with:
-  ```bash
-  python3 mission_interpreter.py
-  ```
-- **AS2 Behavior Trees single drone mission**: You can execute a mission that used AS2 Behavior Trees, launching the mission with:
-  ```bash
-  python3 mission_behavior_tree.py
+  python3 mission.py -n drone0
   ```
 
 ### 4. End the execution
