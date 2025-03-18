@@ -66,7 +66,7 @@ We have created a competition style course with 4 different stages to complete o
     - Using your formation flying methods attempt to maneouever your swarm of drones through a set of dynamically moving obstacles.  
     - You may need adaptive formation control to respond to changes in real time.
 
-![schematic](images/7_schematic.png)
+![docs](schematic.png)
 
 In groups of 2, you will be investigating, developing and testing your algorithm primarily in simulation. You will be given the opportunity to run a viable solution on real crazyflies on the 26th March and 2nd April at UCL HereEast. Points will be awarded on the completion of each stage, and performance within. 
 
