@@ -9,7 +9,7 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data, QoSProfile, QoSDurabilityPolicy
 
 from std_msgs.msg import ColorRGBA
-from geometry_msgs.msg import PoseStamped, Point
+from geometry_msgs.msg import PoseStamped, Point, PoseArray
 from visualization_msgs.msg import Marker, MarkerArray
 
 import copy
@@ -33,27 +33,24 @@ class ScenarioObstacleViz(Node):
         self.viz_markers_pub = self.create_publisher(MarkerArray, "viz/obstacles", latching_qos)
         self.viz_markers_dynamic_pub = self.create_publisher(Marker, "viz/dynamic_obstacles", 10)
 
+        self.tracking_dict = {}
+        self.timer = self.create_timer(0.1, self.timer_cb)
+
         self.get_logger().info(f"Scenario Obstacle Viz Intialised for {self.get_parameter('scenario_file').value}")
 
         self.latch_publish()
 
-    
-    def dynamic_obs_cb(self, msg):
-
-        frame = msg.header.frame_id 
-        obs_id = int(frame.split("_")[1])
+    def timer_cb(self):
 
         stage = self.scenario.get("stage4", {})
-        # stage_center = stage["stage_center"]
 
         marker = Marker()
         marker.header.stamp = self.get_clock().now().to_msg()
         marker.header.frame_id = "earth"
 
         marker.ns = "dynamic_object"
-        marker.id = obs_id
-
-        marker.type = Marker.CUBE
+       
+        marker.type = Marker.CUBE_LIST
         marker.action = Marker.ADD
 
         marker.scale.x = stage["obstacle_diameter"] #/ 10.0
@@ -66,12 +63,16 @@ class ScenarioObstacleViz(Node):
         marker.color.g = colour[2]
         marker.color.b = colour[3]
 
-        # Add obstacles as objects
-        marker.pose.position.x = msg.pose.position.x
-        marker.pose.position.y = msg.pose.position.y
-        marker.pose.position.z = stage["obstacle_height"] / 2.0
+        for id, point in self.tracking_dict.items():
+            marker.id = id
+            point.z = stage["obstacle_height"] / 2.0
+            marker.points.append(point)
 
         self.viz_markers_dynamic_pub.publish(marker)
+    
+    def dynamic_obs_cb(self, msg):
+        msg_id = int(msg.header.frame_id.split("_")[1])
+        self.tracking_dict[msg_id] = msg.pose.position
     
     # Read the YAML scenario file
     def read_yaml(self, file_path):

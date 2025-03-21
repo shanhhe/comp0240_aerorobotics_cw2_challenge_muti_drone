@@ -142,9 +142,10 @@ for namespace in ${drone_namespaces[@]}; do
     base_launch=${base_launch} \
     use_multicopter=${use_multicopter} \
     multicopter_uav_config="${CONFIG_SIM}/config_multicopter/uav_config.yaml" \
+    scenario_file=${scenario_file} \
     ${tmuxinator_end}"
 
-  sleep 5.0 # Wait for tmuxinator to finish
+  sleep 0.2 # Wait for tmuxinator to finish
 done
 
 # Attach to tmux session

@@ -9,6 +9,7 @@ script_folder          = @settings["script_folder"]
 base_launch            = @settings["base_launch"] == "true"
 multicopter            = @settings["use_multicopter"] == "true"
 multicopter_uav_config = @settings["multicopter_uav_config"]
+scenario_file          = @settings["scenario_file"]
 %>
 
 name: <%= drone_namespace %>
@@ -29,6 +30,10 @@ windows:
             config_file:=<%= config_file %>
             uav_config:=<%= multicopter_uav_config %>
             world_config:=<%= simulation_config_file %>
+                <%- if base_launch %> # Just run for first drone
+        - ros2 launch scenario_runner runner.launch.py
+            scenario_file:=<%= scenario_file %>
+                <%- end %> # end first drone
             <%- else %> # IF USING GAZEBO
                 <%- if base_launch %> # Just run for first drone
         - ros2 launch as2_gazebo_assets launch_simulation.py

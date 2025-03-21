@@ -196,6 +196,7 @@ There are several missions that can be executed:
   ```
 
   or 
+  
   ```bash
   echo "export CW2_SCENARIO_FILE=scenarios/scenario1_stage1.yaml" > ~/.bashrc
   source ~/.bashrc
