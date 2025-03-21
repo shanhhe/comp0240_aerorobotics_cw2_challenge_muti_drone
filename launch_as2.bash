@@ -7,17 +7,19 @@ usage() {
     echo "      -w: world config file to use as base template. Default is 'config_sim/config/world.yaml'"
     echo "      -n: select drones namespace to launch, values are comma separated. By default, it will get all drones from world description file"
     echo "      -c: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
+    echo "      -m: if set, it will use the multicopter simulation platform instead of gazebo"
     echo "      -g: launch using gnome-terminal instead of tmux. Default not set"
 }
 
 # Initialize variables with default values
-scenario_file="scenarios/scenario1.yaml"
+scenario_file="scenarios/scenario1.yaml" # Set using environment variable?? 
 drones_namespace_comma=""
 launch_simulation="true"
+use_multicopter="false"
 use_gnome="false"
 
 # Arg parser
-while getopts "s:w:n:cg" opt; do
+while getopts "s:w:n:cmg" opt; do
   case ${opt} in
     s )
       scenario_file="${OPTARG}"
@@ -30,6 +32,9 @@ while getopts "s:w:n:cg" opt; do
       ;;
     c )
       launch_simulation="false"
+      ;;
+    m )
+      use_multicopter="true"
       ;;
     g )
       use_gnome="true"
@@ -61,24 +66,38 @@ simulation_config_file="${simulation_config_folder}/${simulation_file_name}"
 config_folder=""
 if [[ ${launch_simulation} == "true" ]]; then
   config_folder="${CONFIG_SIM}"
-  # Ensure this folders gazebo packages are on the path for both aerostack2 and gazebo to read...
-  export GZ_SIM_RESOURCE_PATH=$GZ_SIM_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
-  export IGN_GAZEBO_RESOURCE_PATH=$IGN_GAZEBO_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
-  export AS2_EXTRA_DRONE_MODELS=crazyflie_led_ring
+  if [[ ${use_multicopter} == "true" ]]; then
+    
+    # Set the world configuration
+    if [ -z "$world_config" ]; then
+      world_config="${config_folder}/config_multicopter/world.yaml"
+    fi
+    # TODO
+    # python3 "${SCRIPT_DIR}/utils/generate_world_from_scenario.py" "${scenario_file}" -w "${world_config}" -o "${simulation_config_folder}" -f "${simulation_file_name}"
+    cp "${world_config}" "${simulation_config_file}"
+    drone_config="${config_folder}/config_multicopter/config.yaml"
+    config_dir="${config_folder}/config_multicopter"
+  else # do Gazebo
+    # Ensure this folders gazebo packages are on the path for both aerostack2 and gazebo to read...
+    export GZ_SIM_RESOURCE_PATH=$GZ_SIM_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
+    export IGN_GAZEBO_RESOURCE_PATH=$IGN_GAZEBO_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
+    export AS2_EXTRA_DRONE_MODELS=crazyflie_led_ring
 
-  # Set the world configuration
-  if [ -z "$world_config" ]; then
-    world_config="${config_folder}/config/world.yaml"
+    # Set the world configuration
+    if [ -z "$world_config" ]; then
+      world_config="${config_folder}/config/world.yaml"
+    fi
+
+    # Generate Simulated World from configuration
+    python3 "${SCRIPT_DIR}/utils/generate_world_from_scenario.py" "${scenario_file}" -w "${world_config}" -o "${simulation_config_folder}" -f "${simulation_file_name}"
+    drone_config="${config_folder}/config/config.yaml"
+    config_dir="${config_folder}/config"
   fi
-
-  # Generate Simulated World from configuration
-  python3 "${SCRIPT_DIR}/utils/generate_world_from_scenario.py" "${scenario_file}" -w "${world_config}" -o "${simulation_config_folder}" -f "${simulation_file_name}"
-
 else
   config_folder="${CONFIG_REAL}"
+  drone_config="${config_folder}/config/config.yaml"
+  config_dir="${config_folder}/config"
 fi
-
-drone_config="${config_folder}/config/config.yaml"
 
 # If no drone namespaces are provided, get them from the world description config file 
 if [ -z "$drones_namespace_comma" ]; then
@@ -112,10 +131,12 @@ for namespace in ${drone_namespaces[@]}; do
     drone_namespace=${namespace} \
     script_folder=${SCRIPT_DIR} \
     simulation=${launch_simulation} \
-    config_dir=${config_folder}/config \
+    config_dir=${config_dir} \
     config_file=${drone_config} \
     simulation_config_file=${simulation_config_file} \
     base_launch=${base_launch} \
+    use_multicopter=${use_multicopter} \
+    multicopter_uav_config="${CONFIG_SIM}/config_multicopter/uav_config.yaml" \
     ${tmuxinator_end}"
 
   sleep 0.1 # Wait for tmuxinator to finish
