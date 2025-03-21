@@ -186,7 +186,7 @@ def generate_as2_dynamic_objects_config(scenario, output_model_folder):
             "max_y": center[1] + size[1]/2.0
         }
 
-        object_size = [0.5, 0.5, 5.0]
+        object_size = [stage["obstacle_diameter"], stage["obstacle_diameter"], stage["obstacle_height"]]
 
         model_name = f"dynamic_obstacle_{i}"
         generate_dynamic_object_model(output_model_folder, model_name, 

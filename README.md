@@ -137,10 +137,11 @@ To launch aerostack2 nodes for each drone, execute once the following command:
 ```
 
 The flags for the components launcher are:
-- **-s**: scenario file to load from. Default is 'scenarios/scenario1.yaml'"
-- **-w**: world config file to use as base template. Default is 'config_sim/config/world.yaml'"
+- **-s**: scenario file to load from. Default is 'scenarios/scenario1.yaml'
+- **-w**: world config file to use as base template. Default is 'config_sim/config/world.yaml'
 - **-n**: select drones namespace to launch, values are comma separated. By default, it will get all drones from world description file
-- **-c**: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
+- **-c**: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false
+- **-m**: if set, it will use the multicopter simulation platform instead of gazebo
 - **-g**: launch using gnome-terminal instead of tmux. Default not set
 
 > **NOTE:** You can also give or set the environment variable `CW2_SCENARIO_FILE` if you want to set the default to something different. You can either `export CW2_SCENARIO_FILE=scenarios/scenario.yaml` and/or put this line at the bottom of your `~/.bashrc` file and restart your terminal. 
@@ -154,7 +155,7 @@ To launch aerostack2 nodes for the ground station, execute once the following co
 
 The flags for the components launcher are:
 
-- **-m**: multi agent. Default not set
+- **-s**: scenario file to load from. Default is 'scenarios/scenario1.yaml'"
 - **-c**: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
 - **-t**: launch keyboard teleoperation. Default not launch
 - **-v**: open rviz. Default not launch
@@ -187,11 +188,45 @@ There are several missions that can be executed:
   ./launch_as2.bash -s scenarios/scenario1_stage1.yaml
   ```
 
+  or 
+
+  ```bash
+  export CW2_SCENARIO_FILE=scenarios/scenario1_stage1.yaml
+  ./launch_as2.bash
+  ```
+
+  or 
+  ```bash
+  echo "export CW2_SCENARIO_FILE=scenarios/scenario1_stage1.yaml" > ~/.bashrc
+  source ~/.bashrc
+  ./launch_as2.bash
+  ```
+
+  ```bash
+  python3 mission_swarm.py 
+  ```
+
+- **AS2 Multi Drone NO GAZEBO** using multicopter simulation instead of gazebo: 
+  
+  In terminal 1 with the `-m` option
+  ```bash
+  ./launch_as2.bash -m
+  ```
+
+  In a different terminal 2, ensuring that your run rviz so you can see the obstacles
+  ```bash
+  ./launch_ground_station.bash -v
+  ```
+
+  And then in one of your ground station terminals (or separately in a different terminal)
   ```bash
   python3 mission_swarm.py 
   ```
 
 - **AS2 Multi Drone**: You can change the number of drones by providing a different world file (you could also modify the default `world.yaml` as well)
+
+> **Note** for multicopter you will have to pass the relevant multicopter configuration instead e.g. `config_sim/config_multicopter/world_single.yaml`
+
   ```bash
   ./launch_as2.bash -w config_sim/config/world_single.yaml
   ```

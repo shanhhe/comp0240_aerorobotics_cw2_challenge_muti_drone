@@ -45,4 +45,6 @@ stage4:
   end_point: [-4.0, 0.0] # Relative to stage center
   num_obstacles: 5
   obstacle_velocity: 0.5
+  obstacle_height: 5.0
+  obstacle_diameter: 0.5
 

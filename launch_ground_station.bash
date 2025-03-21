@@ -2,7 +2,7 @@
 
 usage() {
     echo "  options:"
-    echo "      -m: multi agent. Default not set"
+    echo "      -s: scenario file to load from. Default is 'scenarios/scenario1.yaml'"
     echo "      -c: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
     echo "      -t: launch keyboard teleoperation. Default not launch"
     echo "      -v: open rviz. Default not launch"
@@ -13,6 +13,7 @@ usage() {
 }
 
 # Initialize variables with default values
+scenario_file="${CW2_SCENARIO_FILE:=scenarios/scenario1.yaml}" # Set using environment variable?? 
 mocap4ros2="false"
 swarm="false"
 launch_simulation="true"
@@ -23,11 +24,11 @@ drones_namespace_comma=""
 use_gnome="false"
 
 # Parse command line arguments
-while getopts "mctvrn:g" opt; do
+while getopts "s:ctvrn:g" opt; do
   case ${opt} in
-    m )
-      swarm="true"
-      ;;
+    s )
+      scenario_file="${OPTARG}"
+    ;;
     c )
       launch_simulation="false"
       ;;
@@ -70,7 +71,7 @@ CONFIG_SIM="${SCRIPT_DIR}/config_sim"
 CONFIG_REAL="${SCRIPT_DIR}/config_real"
 
 if [[ ${launch_simulation} == "true" ]]; then
-  config_folder="${CONFIG_SIM}"
+  config_folder="${CONFIG_SIM}"  
 else
   config_folder="${CONFIG_REAL}"
 fi
@@ -116,6 +117,7 @@ eval "tmuxinator ${tmuxinator_mode} -n ground_station -p tmuxinator/ground_stati
   rosbag=${rosbag} \
   mocap4ros2=${mocap4ros2} \
   script_folder=${SCRIPT_DIR} \
+  scenario_file=${scenario_file} \
   ${tmuxinator_end}"
 
 # Attach to tmux session

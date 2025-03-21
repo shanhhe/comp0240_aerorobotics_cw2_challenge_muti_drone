@@ -69,17 +69,20 @@ config_folder=""
 if [[ ${launch_simulation} == "true" ]]; then
   config_folder="${CONFIG_SIM}"
   if [[ ${use_multicopter} == "true" ]]; then
-    
+    echo "Setting up for multicopter"
+
     # Set the world configuration
     if [ -z "$world_config" ]; then
       world_config="${config_folder}/config_multicopter/world.yaml"
     fi
     # TODO
-    # python3 "${SCRIPT_DIR}/utils/generate_world_from_scenario.py" "${scenario_file}" -w "${world_config}" -o "${simulation_config_folder}" -f "${simulation_file_name}"
-    cp "${world_config}" "${simulation_config_file}"
+    python3 "${SCRIPT_DIR}/utils/generate_world_from_scenario.py" "${scenario_file}" -w "${config_folder}/config/world.yaml" -o "${simulation_config_folder}" -f "${simulation_file_name}"
+    cp "${world_config}" "${simulation_config_file}" # Generate Models but Overwrite world. 
     drone_config="${config_folder}/config_multicopter/config.yaml"
     config_dir="${config_folder}/config_multicopter"
   else # do Gazebo
+    echo "Setting up for Gazebo"
+
     # Ensure this folders gazebo packages are on the path for both aerostack2 and gazebo to read...
     export GZ_SIM_RESOURCE_PATH=$GZ_SIM_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
     export IGN_GAZEBO_RESOURCE_PATH=$IGN_GAZEBO_RESOURCE_PATH:"${config_folder}/gazebo/models":"${config_folder}/gazebo/worlds":"${config_folder}/gazebo/plugins":"${simulation_config_folder}/models"
@@ -141,7 +144,7 @@ for namespace in ${drone_namespaces[@]}; do
     multicopter_uav_config="${CONFIG_SIM}/config_multicopter/uav_config.yaml" \
     ${tmuxinator_end}"
 
-  sleep 0.1 # Wait for tmuxinator to finish
+  sleep 5.0 # Wait for tmuxinator to finish
 done
 
 # Attach to tmux session

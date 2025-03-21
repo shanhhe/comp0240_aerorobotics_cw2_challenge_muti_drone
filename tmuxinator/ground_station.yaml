@@ -1,6 +1,7 @@
 <%
 # Input parameters
 drone_namespace = @settings["drone_namespace"]
+scenario_file   = @settings["scenario_file"]
 config_folder   = @settings["config_folder"]
 keyboard_teleop = @settings["keyboard_teleop"] == "true"
 rviz            = @settings["rviz"] == "true"
@@ -39,8 +40,8 @@ windows:
             rviz_config:=<%= config_folder %>/rviz2_config.rviz
             drone_model:=crazyflie
             use_sim_time:=true
-        - ros2 launch led_ring_visualizer led_ring_viz.launch.py
-            namespace_list:=<%= drone_namespace %>
+        - ros2 launch scenario_obstacle_viz viz.launch.py
+            scenario_file:=<%= scenario_file %>
       <%- end %>
       <%- if rosbag %>
         - ./rosbag/record_rosbag.bash <%= drone_namespace %>
