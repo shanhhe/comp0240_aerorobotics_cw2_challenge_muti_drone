@@ -8,30 +8,31 @@ This challenge has been developed on top of the aerostack2 platform
 
 ## Challenge
 
-This challenge revolves around swarming of drones and formation flight. We are asking you to investigate the difference in performance and application of decentralised swarm based approaches versus centralised approaches to performing formation flight with a group of 5 drones in a number of different scenarios. 
+This challenge revolves around swarming of drones and formation flight. We are asking you to investigate the difference in performance and application of decentralised swarm based approaches versus centralised approaches to performing formation flight with a group of 5 drones (minimum 3 if experiencing technical issues) in 4 different scenario stages. 
 
 ### Swarming and Formation Flight
 
-**Swarming** refers to the collective behavior of multiple agents (drones) operating together using local rules without a centralized controller. These behaviors emerge from interactions between individual drones and their environment.
+**Swarming** refers to the collective behaviour of multiple agents (drones) operating together using local rules without a centralised controller. These behaviours emerge from interactions between individual drones and their environment.
 
-Swarm robotics takes inspiration from nature—such as birds, fish, and insects—to design scalable, flexible, and robust robotic systems. Swarm behaviors are often decentralized and self-organized, meaning that individual drones follow simple local rules that collectively result in a global pattern of behavior.
+Swarm robotics takes inspiration from nature—such as birds, fish, and insects—to design scalable, flexible, and robust robotic systems. Swarm behaviours are often decentralised and self-organised, meaning that individual drones follow simple local rules that collectively result in a global pattern of behaviour.
 
-Common decentralized swarm control strategies:
+Common decentralised swarm control strategies:
 
-- Boids Model (Flocking Behavior) – Uses three simple rules: separation, alignment, and cohesion.
+- Boids Model (Flocking Behaviour) – Uses three simple rules: separation, alignment, and cohesion.
 - Potential Fields – Assigns virtual attractive/repulsive forces to goals and obstacles to guide movement.
-- Reinforcement Learning-Based Swarms – Uses machine learning to optimize local decision-making.
-- Bio-Inspired Methods – Such as pheromone-based navigation or genetic algorithms.
+- Optimisation-based Swarms – Optimisation approach focusing on local decision-making given a set of constraints.
+- Bio-Inspired Methods – Use of indirect coordination through share environmental cues such as pheromone-based navigation or genetic algorithms.
 
 **Formation flight** is a more structured approach to multi-agent coordination where drones maintain a specific geometric arrangement while moving. Unlike general swarming, formation flying often requires precise positioning and coordination.
 
 Common formation flight strategies:
 
-- Centralized Approaches
-    - Leader-Follower – One drone acts as the leader while others maintain a relative position.
-    - Multi-Agent Path Planning (MAPF) – Centralized planning optimizes collision-free paths.
+- Centralised Approaches
+    - Leader-Follower – One drone acts as the leader dictating the trajectory while others maintain a relative position. This can be both centralised and de-centralised. For the latter, this introduces approaches where the swarm my automatically elect a new leader.
+    - Multi-Agent Path Planning (MAPF) – Global centralised planning approach computed for the whole route and optimising e.g. for collision-free paths.
     - Virtual Structures – The entire formation is treated as a rigid body and controlled as one unit.
-- Decentralized Approaches
+      
+- Decentralised Approaches
     - Boids with Formation Constraints – Similar to flocking but with additional formation control.
     - Consensus-Based Control – Drones agree on formation changes based on local communication.
     - Distributed Potential Fields – Drones use attraction/repulsion forces while maintaining formation.
@@ -47,11 +48,15 @@ These examples highlight the versatility of swarm robotics in enhancing efficien
 
 ### Your Challenge
 
-We have created a competition style course with 4 different stages to complete one after another.  
+We have created a competition style course with 4 different scenario stages to complete one after another. 
+
+For each of these stages 1 to 4, you need to consider the coordination of 5 drones using either a centrialised and decentrialised method of your choosing. The aim is to route 5 drones through each scenario stage. If you have technical challenges, an acceptable minimum number of drones is 3.
+
+In groups of 2, you will be investigating, developing and testing your algorithms in simulation.
 
 1. **Stage 1: Changing Formations**: 
     - Implementing the formation flight algorithms which have the ability to changing the formation periodically whilst maintaining a circular trajectory. 
-    - Cmpare different formation shapes (Line, V-shape, Diamond, Circular Orbit, Grid, Staggered)
+    - Compare different formation shapes (Line, V-shape, Diamond, Circular Orbit, Grid, Staggered)
 
 2. **Stage 2: Window Traversal**: 
     - Using your formation flying methods attempt to maneouever your swarm of drones through two narrow windows slits. 
@@ -65,9 +70,17 @@ We have created a competition style course with 4 different stages to complete o
     - Using your formation flying methods attempt to maneouever your swarm of drones through a set of dynamically moving obstacles.  
     - You may need adaptive formation control to respond to changes in real time.
 
-![schematic](docs/schematic.png)
+![scenario1](docs/schematic.png)
 
-You will be investigating, developing and testing your algorithm primarily in simulation. Hopefully we will get a chance to run these on the real crazyflies. Points are awarded on the completion of each stage, and performance within. The winning group will be the group with the most points at the end of the competition.
+## Hardware Challenge Event at HereEast 26th March
+
+In your groups, you will be given the opportunity to run a viable solution on real crazyflies on the 26th March and / or 2nd April at UCL HereEast - this is an optional non-assessed task.
+
+I encourage as many groups as possible to join the event. We will be maintaining a leaderboard and points will be awarded based on success rate, reconfigurablity and time taken. A sign up sheet will be provided.
+
+As an incentive to run your solution on hardware at UCL HereEast, groups have the chance to complete scenario stages 2 and or 3 depending on logistics and the number of crashes we have on the day. A small, low value prize will be provided to the winning solution. The event will be recorded. 
+
+Regardless of whether you are competing or not, I encourage students to attend the sessions to support your fellow colleagues. 
 
 ## Installation
 
@@ -150,17 +163,41 @@ The flags for the components launcher are:
 ### 3. Launch a mission
 There are several missions that can be executed:
 
-- **AS2 keyboard teleoperation control**: You can use the keyboard teleoperation launched with the ground station, using the flag `-t`:
+- **AS2 Multi Drone**: 
+  
+  In terminal 1
   ```bash
-  ./launch_ground_station.bash -t
+  ./launch_as2.bash
   ```
-  You can launch a **swarm of drones** with the flag `-m` and control them with the keyboard teleoperation, as:
+
+  In a different terminal 2
   ```bash
-  ./launch_as2.bash -m
+  ./launch_ground_station.bash
   ```
+
+  And then in one of your ground station terminals (or separately in a different terminal)
   ```bash
-  ./launch_ground_station.bash -m -t
+  python3 mission_swarm.py 
   ```
+
+- **AS2 Multi Drone**: You can specify the specific scenario you wish to run
+  ```bash
+  ./launch_as2.bash -s scenarios/scenario1_stage1.yaml
+  ```
+
+  ```bash
+  python3 mission_swarm.py 
+  ```
+
+- **AS2 Multi Drone**: You can change the number of drones by providing a different world file (you could also modify the default `world.yaml` as well)
+  ```bash
+  ./launch_as2.bash -w config_sim/config/world_single.yaml
+  ```
+
+  ```bash
+  ./launch_as2.bash -w config_sim/config/world_swarm.yaml
+  ```
+
 - **AS2 Multi Drone**: You can explicitly specify the names of the drones to monitor
   ```bash
   ./launch_ground_station.bash -n drone0,drone1,drone2
@@ -172,30 +209,7 @@ There are several missions that can be executed:
 
 - **AS2 Python API single drone mission**: You can execute a mission that used AS2 Python API, launching the mission with:
   ```bash
-  python3 mission.py
-  ```
-- **AS2 Python API single drone mission using GPS**: You can execute a mission that used AS2 Python API with GPS, launching the mission with:
-  ```bash
-  python3 mission_gps.py
-  ```
-- **AS2 Python API swarm of drones mission**: You can execute a mission with a swarm of drones that used AS2 Python API, launching the mission with:
-  ```bash
-  python3 mission_swarm.py
-  ```
-  You must launch a **swarm of drones** with the flag `-m`, as:
-  ```bash
-  ./launch_as2.bash -m
-  ```
-  ```bash
-  ./launch_ground_station.bash -m
-  ```
-- **AS2 Mission Interpreter single drone mission**: You can execute a mission that used AS2 Mission Interpreter, launching the mission with:
-  ```bash
-  python3 mission_interpreter.py
-  ```
-- **AS2 Behavior Trees single drone mission**: You can execute a mission that used AS2 Behavior Trees, launching the mission with:
-  ```bash
-  python3 mission_behavior_tree.py
+  python3 mission.py -n drone0
   ```
 
 ### 4. End the execution
