@@ -9,10 +9,12 @@ usage() {
     echo "      -c: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
     echo "      -m: if set, it will use the multicopter simulation platform instead of gazebo"
     echo "      -g: launch using gnome-terminal instead of tmux. Default not set"
+    echo "------------------"
+    echo "  Note: you can set and export the environment variable CW2_SCENARIO_FILE in your ~/.bashrc to set a default variable "
 }
 
 # Initialize variables with default values
-scenario_file="scenarios/scenario1.yaml" # Set using environment variable?? 
+scenario_file="${CW2_SCENARIO_FILE:=scenarios/scenario1.yaml}" # Set using environment variable?? 
 drones_namespace_comma=""
 launch_simulation="true"
 use_multicopter="false"
