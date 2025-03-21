@@ -143,6 +143,8 @@ The flags for the components launcher are:
 - **-c**: if set, the real crazyflie interface will be launched instead of the simulation. Defaults to false"
 - **-g**: launch using gnome-terminal instead of tmux. Default not set
 
+> **NOTE:** You can also give or set the environment variable `CW2_SCENARIO_FILE` if you want to set the default to something different. You can either `export CW2_SCENARIO_FILE=scenarios/scenario.yaml` and/or put this line at the bottom of your `~/.bashrc` file and restart your terminal. 
+
 ### 2. Launch aerostack2 nodes for the ground station
 To launch aerostack2 nodes for the ground station, execute once the following command:
 
