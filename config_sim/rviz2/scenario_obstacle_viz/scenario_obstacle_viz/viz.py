@@ -33,8 +33,9 @@ class ScenarioObstacleViz(Node):
         self.viz_markers_pub = self.create_publisher(MarkerArray, "viz/obstacles", latching_qos)
         self.viz_markers_dynamic_pub = self.create_publisher(Marker, "viz/dynamic_obstacles", 10)
 
-        self.tracking_dict = {}
-        self.timer = self.create_timer(0.1, self.timer_cb)
+        if "stage4" in self.scenario:
+            self.tracking_dict = {}
+            self.timer = self.create_timer(0.1, self.timer_cb)
 
         self.get_logger().info(f"Scenario Obstacle Viz Intialised for {self.get_parameter('scenario_file').value}")
 

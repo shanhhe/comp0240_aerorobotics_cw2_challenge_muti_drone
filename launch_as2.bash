@@ -73,7 +73,7 @@ if [[ ${launch_simulation} == "true" ]]; then
 
     # Set the world configuration
     if [ -z "$world_config" ]; then
-      world_config="${config_folder}/config_multicopter/world.yaml"
+      world_config="${CW2_WORLD_FILE:=$config_folder/config_multicopter/world.yaml}"
     fi
     # TODO
     python3 "${SCRIPT_DIR}/utils/generate_world_from_scenario.py" "${scenario_file}" -w "${config_folder}/config/world.yaml" -o "${simulation_config_folder}" -f "${simulation_file_name}"
@@ -90,7 +90,7 @@ if [[ ${launch_simulation} == "true" ]]; then
 
     # Set the world configuration
     if [ -z "$world_config" ]; then
-      world_config="${config_folder}/config/world.yaml"
+      world_config="${CW2_WORLD_FILE:=$config_folder/config/world.yaml}"
     fi
 
     # Generate Simulated World from configuration

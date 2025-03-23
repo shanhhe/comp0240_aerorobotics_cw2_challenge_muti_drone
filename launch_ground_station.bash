@@ -76,15 +76,14 @@ else
   config_folder="${CONFIG_REAL}"
 fi
 
-drone_config="${config_folder}/config/config.yaml"
+drone_config="${config_folder}/config/world.yaml"
+simulation_config_file="${CONFIG_SIM}/world/world.yaml"
 
-# Set simulation world description config file
-if [[ ${swarm} == "true" ]]; then
-  simulation_config_file="${CONFIG_SIM}/config/world_swarm.yaml"
-else
-  simulation_config_file="${CONFIG_SIM}/config/world.yaml"
+if [ ! -f "${simulation_config_file}" ]; then
+    echo "Simulation Configuration File Not Found at ${simulation_config_file}"
+    echo "Please run launch_as2.bash first to generate ${simulation_config_file}"
+    exit
 fi
-
 
 # If no drone namespaces are provided, get them from the world description config file 
 if [ -z "$drones_namespace_comma" ]; then
