@@ -207,6 +207,30 @@ There are several missions that can be executed:
   python3 mission_swarm.py 
   ```
 
+- **AS2 Multi Drone**: You can specify the world file you wish to use as base to define the number of drones
+  ```bash
+  ./launch_as2.bash -w config_sim/config/world_swarm.yaml
+  ```
+
+  or 
+
+  ```bash
+  export CW2_WORLD_FILE=config_sim/config/world_swarm.yaml
+  ./launch_as2.bash
+  ```
+
+  or 
+  
+  ```bash
+  echo "export CW2_WORLD_FILE=config_sim/config/world_swarm.yaml" > ~/.bashrc
+  source ~/.bashrc
+  ./launch_as2.bash
+  ```
+
+  ```bash
+  python3 mission_swarm.py 
+  ```
+
 - **AS2 Multi Drone NO GAZEBO** using multicopter simulation instead of gazebo: 
   
   In terminal 1 with the `-m` option
@@ -218,11 +242,14 @@ There are several missions that can be executed:
   ```bash
   ./launch_ground_station.bash -v
   ```
+  
+  Note that if you want to change world file, its a slightly different format so you will need to use the   templates available in `config_sim/config_multicopter`. e.g. `export CW2_WORLD_FILE=config_sim/config_multicopter/world_swarm.yaml`
 
   And then in one of your ground station terminals (or separately in a different terminal)
   ```bash
   python3 mission_swarm.py 
   ```
+
 
 - **AS2 Multi Drone**: You can change the number of drones by providing a different world file (you could also modify the default `world.yaml` as well)
 
