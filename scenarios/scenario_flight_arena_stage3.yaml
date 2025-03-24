@@ -6,8 +6,8 @@ name: scenario_flight_arena
 stage_size: [5.0, 5.0]
 stage3:
   stage_center: [2.5, 0.0]
-  start_point: [0.0, -2.5] # Relative to stage center
-  end_point: [0.0, 2.5] # Relative to stage center
+  start_point: [-2.5, 0.0] # Relative to stage center
+  end_point: [2.5, 0.0] # Relative to stage center
   obstacle_height: 3.0
   obstacle_diameter: 0.2
   obstacles:
